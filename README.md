@@ -14,7 +14,7 @@
 </p>
 
 <p align="center">
-  <a href="https://ahmadhussain0033.github.io/Ahmadhussain0033/"><img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=500&size=18&duration=2600&pause=900&color=4FE3FF&center=true&vCenter=true&width=640&lines=finding+the+signal+in+the+noise.;aspiring+information+theorist.;researcher.+a+bit+of+everything.;press+%2F+on+my+site+to+look+around." alt="typing intro"></a>
+  <a href="https://ahmadhussain0033.github.io/Ahmadhussain0033/"><img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=500&size=18&duration=2600&pause=900&color=4FE3FF&center=true&vCenter=true&width=640&lines=Nothing+matters+so+everything+matters+equally;finding+the+signal+in+the+noise.;aspiring+information+theorist.;researcher.+a+bit+of+everything.;press+%2F+on+my+site+to+look+around." alt="typing intro"></a>
 </p>
 
 <p align="center">
@@ -75,7 +75,7 @@ class Ahmad:
     roles     = ["aspiring information theorist", "researcher", "a bit of everything"]
     thinking  = ["information theory", "research"]
     listening = "STRUCT — super slowed + reverb"
-    motto     = ""                  # todo: your motto
+    motto     = "Nothing matters so everything matters equally"
     site      = "https://ahmadhussain0033.github.io/Ahmadhussain0033/"
 ```
 

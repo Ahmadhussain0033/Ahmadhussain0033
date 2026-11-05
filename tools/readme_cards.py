@@ -198,7 +198,12 @@ def player_card(t, C, st, avatar):
         parts.append(p)
     if roles:
         line, s = t.fit(t.mono, "  ·  ".join(roles), 15, 600)
-        p, _ = t.path(t.mono, line, s, x0, 184, FG)
+        p, _ = t.path(t.mono, line, s, x0, 180, FG)
+        parts.append(p)
+    if has(C.get("motto")):
+        parts.append(f'<rect x="{x0}" y="192" width="3" height="18" fill="{ACC}"/>')
+        line, s = t.fit(t.semi, C["motto"], 15, 560)
+        p, _ = t.path(t.semi, line, s, x0 + 12, 206, HI)
         parts.append(p)
 
     # stats
@@ -211,8 +216,8 @@ def player_card(t, C, st, avatar):
     stats = [s for s in stats if s[0] is not None]
     for i, (v, label) in enumerate(stats):
         x = x0 + i * 140
-        parts.append(f'<line x1="{x - 14}" y1="222" x2="{x - 14}" y2="290" stroke="{LINE2}"/>' if i else "")
-        p, _ = t.path(t.disp, str(v), 44, x, 268, HI)
+        parts.append(f'<line x1="{x - 14}" y1="230" x2="{x - 14}" y2="290" stroke="{LINE2}"/>' if i else "")
+        p, _ = t.path(t.disp, str(v), 44, x, 272, HI)
         parts.append(p)
         p, _ = t.path(t.mono, label, 10.5, x, 290, MUTE, 1.2)
         parts.append(p)

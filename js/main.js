@@ -829,10 +829,11 @@
   }
   async function typeTagline() {
     const el = $("#heroTag");
-    if (!has(C.tagline)) { el.innerHTML = todo("tagline — set it in config.js"); return; }
+    const line = has(C.tagline) ? C.tagline : C.motto;
+    if (!has(line)) { el.innerHTML = todo("tagline — set it in config.js"); return; }
     el.textContent = "";
     await sleep(900);
-    for (const ch of C.tagline) {
+    for (const ch of line) {
       el.textContent += ch;
       await sleep(reduceMotion ? 0 : /[,.!?]/.test(ch) ? 260 : 24 + Math.random() * 46);
     }
@@ -866,6 +867,8 @@
     $("#aboutDot").className = "st " + ((C.availability || {}).status || "");
     $("#aboutName").textContent = C.name || "";
     $("#aboutHandle").textContent = has(C.handle) ? "@" + C.handle : "";
+    if (has(C.motto)) $("#aboutMotto").textContent = C.motto;
+    else $("#aboutMotto").remove();
     $("#aboutTags").innerHTML = [C.pronouns, C.location, (C.hexoro || {}).name && `${C.hexoro.name}${has(C.hexoro.role) ? " · " + C.hexoro.role : ""}`]
       .filter(has).map((t) => `<span>${esc(t)}</span>`).join("") || todo("pronouns / location");
     const paras = (C.about || []).filter(has);

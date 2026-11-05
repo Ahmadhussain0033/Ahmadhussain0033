@@ -21,7 +21,8 @@ window.SITE = {
     "", // e.g. "a musician"
     "", // e.g. "a builder of things"
   ],
-  tagline: "", // one-liner under your name, e.g. "finding the signal in everything"
+  motto: "Nothing matters so everything matters equally", // typed out under your name (unless tagline is set), on the about card + README
+  tagline: "", // optional one-liner under your name; blank → the motto is shown there
   location: "",
   timezone: "", // IANA name, e.g. "Asia/Karachi" — powers the live clock in contact
   pronouns: "",
@@ -184,7 +185,7 @@ window.SITE = {
     // numeric user ID → live profile card: avatar, status, custom status, activities with
     // timers, Spotify. Discord → Settings → Advanced → Developer Mode, then right-click
     // yourself → Copy User ID. Also join discord.gg/lanyard once (that's what makes it live).
-    userId: "",
+    userId: "970194006069903441",
     // a server invite alone → server name, icon, online + member counts (no setup)
     serverInvite: "", // e.g. "https://discord.gg/xxxx"
     // server ID + Server Settings → Widget → Enable → also shows who's online right now
