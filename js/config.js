@@ -129,8 +129,8 @@ window.SITE = {
       tags: ["robotics", "hardware"], status: "doing", year: "", link: "", repo: "",
     },
     {
-      title: "untitled energy device",
-      blurb: "my own energy device: trying to perfect a closed Stirling engine. no name yet.",
+      title: "closed energy generator",
+      blurb: "my own energy device: trying to perfect a closed Stirling engine.",
       tags: ["hardware", "energy"], status: "doing", year: "", link: "", repo: "",
     },
   ],
