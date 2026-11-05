@@ -233,3 +233,15 @@ if __name__ == "__main__":
     cur, longest, lrange, cstart, today = streaks(days)
     write("streak.svg", streak_svg(sum(days.values()), since, cur, longest, lrange, cstart, today, stamp))
     write("contrib.svg", contrib_svg(days, stamp))
+    # numbers for the README cards (tools/readme_cards.py)
+    year_ago = (dt.date.today() - dt.timedelta(days=365)).isoformat()
+    info = {"total": sum(days.values()), "last_year": sum(v for k, v in days.items() if k > year_ago),
+            "current": cur, "longest": longest, "updated": stamp}
+    if "--demo" not in sys.argv:
+        try:
+            req = urllib.request.Request(f"https://api.github.com/users/{LOGIN}", headers={"Authorization": f"Bearer {token}", "User-Agent": "readme-stats"})
+            with urllib.request.urlopen(req, timeout=30) as r:
+                info["public_repos"] = json.load(r).get("public_repos")
+        except Exception as e:
+            print("public repos skipped:", e)
+    write("stats.json", json.dumps(info, indent=1))

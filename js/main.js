@@ -602,8 +602,12 @@
     if (now - fpsT < 500 || !fpsN) return;
     const ms = fpsAcc / fpsN, fps = 1000 / ms, g = window.__gfx || {};
     const hz = g.refresh ? 1 / g.refresh : 60;
-    fpsEl.className = "hud-fps mono " + (fps >= hz * 0.9 ? "ok" : fps >= hz * 0.6 ? "meh" : "bad");
-    fpsEl.innerHTML = `<b>${Math.round(fps)}</b> fps <span>${ms.toFixed(1)}ms · worst ${fpsWorst.toFixed(1)}ms${g.pr ? ` · 3d res ${Math.round((g.pr / (devicePixelRatio || 1)) * 100)}%` : ""}</span>`;
+    const worst = Math.min(fps, g.fps || fps); // colour by whichever is slower
+    fpsEl.className = "hud-fps mono " + (worst >= hz * 0.9 ? "ok" : worst >= hz * 0.6 ? "meh" : "bad");
+    // page fps (main thread) + the 3D's own fps — with the worker they run independently
+    const g3 = g.fps ? `3d ${Math.round(g.fps)} fps${g.mode ? " · " + g.mode + " thread" : ""}` : "";
+    const res = g.pr ? `res ${Math.round((g.pr / (devicePixelRatio || 1)) * 100)}%` : "";
+    fpsEl.innerHTML = `<b>${Math.round(fps)}</b> fps <span>${ms.toFixed(1)}ms · worst ${fpsWorst.toFixed(1)}ms</span>${g3 ? `<span>${g3}${res ? " · " + res : ""}</span>` : ""}`;
     fpsAcc = fpsN = fpsWorst = 0; fpsT = now;
   }
   function loop(now) {

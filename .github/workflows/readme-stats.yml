@@ -1,7 +1,9 @@
 name: readme stats
 
-# Regenerates assets/readme/streak.svg + contrib.svg from GitHub's own API,
-# so the profile README doesn't depend on third-party stat services.
+# Regenerates the profile README graphics from GitHub's own API + js/config.js:
+#   assets/readme/streak.svg, contrib.svg, stats.json   (tools/stats_svg.py)
+#   assets/readme/card-*.svg                            (tools/readme_cards.py)
+# No third-party stat services. Editing config.js re-runs this, so the README follows the site.
 on:
   schedule:
     - cron: "17 */6 * * *" # every 6 hours
@@ -9,7 +11,11 @@ on:
   push:
     branches: [main]
     paths:
+      - js/config.js
       - tools/stats_svg.py
+      - tools/readme_cards.py
+      - tools/readme_art.py
+      - tools/fonts/**
       - .github/workflows/readme-stats.yml
 
 permissions:
@@ -27,15 +33,25 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: generate svgs
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: install fonttools
+        run: pip install fonttools
+      - name: contribution stats
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python3 tools/stats_svg.py Ahmadhussain0033
+      - name: readme cards
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 tools/readme_cards.py
       - name: commit if changed
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/readme/streak.svg assets/readme/contrib.svg
+          git add assets/readme/streak.svg assets/readme/contrib.svg assets/readme/stats.json assets/readme/card-*.svg
           git diff --cached --quiet && echo "no changes" && exit 0
-          git commit -m "chore: refresh README stats"
+          git commit -m "chore: refresh README stats + cards"
+          git pull --rebase origin main
           git push

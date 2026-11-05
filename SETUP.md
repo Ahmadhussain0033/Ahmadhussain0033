@@ -43,6 +43,8 @@ All personal content lives in **`js/config.js`**.
 
 The site targets your display's full refresh rate (60, 120, 144 Hz and up). Press `f` to show the frame counter.
 
+- **Its own thread.** The 3D background renders in a Web Worker on an `OffscreenCanvas`, so it never competes with scrolling, typing or page scripts on the main thread. Browsers without worker WebGL fall back to rendering on the page. Add `?noworker` to the URL to compare. The fps counter shows the page's fps and the 3D's fps separately.
+- **Everything loads up front.** The 3D engine is module-preloaded. Every shader compiles during the intro, including ones hidden until later (warp streaks, shooting stars), so nothing stalls mid-scroll. Connections to GitHub, Lanyard and Discord are opened early, and the music buffers while you're on the intro.
 - **Resolution budget.** The 3D background renders at most about 3 million pixels per frame, so 4K and retina screens don't render 4–9× the pixels. Anti-aliasing is only used on normal-density screens.
 - **Adaptive quality.** The first frames measure your refresh rate. If the site can't hold it, the 3D resolution steps down, to half at the lowest. The counter shows the current `3d res`.
 - **Cheap background.** The nebula noise refreshes at most 50× a second and is shifted smoothly in between. The film grain and cursor glow are drawn in the same shader pass, so there are no extra full-screen layers.
@@ -70,14 +72,31 @@ This repo is named `Ahmadhussain0033/Ahmadhussain0033`, so GitHub shows `README.
 
 The old `/About-Me/` address stopped working when the repo was renamed (GitHub Pages doesn't redirect), so share the new one.
 
-To regenerate the animated SVGs in `assets/readme/` (for example, after changing the subtitle):
+The middle of the README is four generated cards: player, medals, Hexoro and support. `tools/readme_cards.py` draws them from `js/config.js` plus live stats. The **readme stats** Action reruns it every 6 hours and whenever `config.js` changes, so your README follows the site.
+- The player card's level is √(all-time contributions), shown with its progress to the next level.
+- "Best rank" is your highest unlocked medal.
+- To run it locally: `pip install fonttools`, then `python3 tools/readme_cards.py`. It needs node.
+- To show your thoughts on information theory, uncomment the `~/thoughts.md` block in the README.
+
+To regenerate the banner, divider and now-playing SVGs (for example, after changing the subtitle):
 - Edit the constants at the top of `tools/readme_art.py`.
 - Run `pip install fonttools`.
-- Run `python3 tools/readme_art.py <fonts_dir>`. The fonts directory must contain `outfit.ttf` and `jbm.ttf`, the Outfit and JetBrains Mono variable fonts from Google Fonts.
+- Run `python3 tools/readme_art.py tools/fonts`. The fonts (Outfit and JetBrains Mono, SIL Open Font License) live in `tools/fonts/`.
 
 ## Hosting
 
 Repo **Settings → Pages → Build and deployment → Deploy from a branch → `main` / `(root)`**.
+
+### Custom domain
+
+Everything uses relative paths, so the site works on a custom domain as-is.
+1. Buy the domain at a registrar.
+2. At your DNS provider, add `A` records for the apex pointing to `185.199.108.153`, `185.199.109.153`, `185.199.110.153` and `185.199.111.153`.
+3. Add a `CNAME` record for `www` pointing to `ahmadhussain0033.github.io`.
+4. In **Settings → Pages → Custom domain**, enter the domain (this commits a `CNAME` file). Tick **Enforce HTTPS** once the certificate is issued. `.dev` domains are HTTPS-only.
+5. Update the site URLs in `README.md`.
+
+Don't add the domain before its DNS points at GitHub, or the github.io address will redirect to a domain that doesn't resolve.
 
 ## Structure
 
