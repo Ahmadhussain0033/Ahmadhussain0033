@@ -23,8 +23,11 @@ window.SITE = {
   ],
   motto: "Nothing matters so everything matters equally", // typed out under your name (unless tagline is set), on the about card + README
   tagline: "", // optional one-liner under your name; blank → the motto is shown there
-  location: "",
-  timezone: "", // IANA name, e.g. "Asia/Karachi" — powers the live clock in contact
+  location: "Karachi, Pakistan",
+  timezone: "Asia/Karachi", // IANA name — powers the live clock in contact
+  // README level = your age. birthday "MM-DD" makes it level up on the day (+ an xp bar
+  // through the year); without it the level stays at value.
+  age: { value: 19, asOf: "2026-11-05", birthday: "" },
   pronouns: "",
 
   /* ---------- about.md ---------- */
@@ -39,9 +42,9 @@ window.SITE = {
   ],
   facts: [
     // quick facts table:  [label, value]
-    ["based in", ""],
-    ["timezone", ""],
-    ["languages i speak", ""],
+    ["based in", "Karachi, Pakistan 🇵🇰"],
+    ["timezone", "PKT · UTC+5"],
+    ["languages i speak", "English, Urdu, Arabic"],
     ["currently", ""],
     ["studying", ""],
     ["my organization", "Hexoro"],

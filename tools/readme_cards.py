@@ -16,6 +16,7 @@ Runs in .github/workflows/readme-stats.yml, so editing config.js updates the REA
 Text is converted to vector paths (SVGs inside <img> can't load web fonts).
 """
 import base64
+import datetime as dt
 import json
 import math
 import os
@@ -65,6 +66,33 @@ def has(v):
 
 def esc(s):
     return str(s).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
+
+
+def age_level(C, today=None):
+    """level = age. With birthday "MM-DD" it ticks up on the day and returns progress
+    through the current year; without it, the configured value and no progress."""
+    A = C.get("age") or {}
+    val = A.get("value")
+    if not isinstance(val, int):
+        return None, None
+    today = today or dt.date.today()
+    bday = str(A.get("birthday") or "")
+    try:
+        m, d = (int(x) for x in bday.split("-"))
+        as_of = dt.date.fromisoformat(A.get("asOf") or today.isoformat())
+    except ValueError:
+        return val, None
+
+    def on(year):  # the birthday in a given year (29 Feb → 28 Feb in non-leap years)
+        try:
+            return dt.date(year, m, d)
+        except ValueError:
+            return dt.date(year, m, 28)
+
+    born = as_of.year - val - (0 if as_of >= on(as_of.year) else 1)
+    last = on(today.year) if today >= on(today.year) else on(today.year - 1)
+    nxt = on(last.year + 1)
+    return last.year - born, (today - last).days / max(1, (nxt - last).days)
 
 
 # ------------------------------------------------------------------ text helpers
@@ -151,9 +179,11 @@ def player_card(t, C, st, avatar):
     order = ["SS", "S", "A", "B", "C", "D"]
     best = min(unlocked, key=lambda a: order.index(a.get("grade", "D")) if a.get("grade") in order else 9) if unlocked else None
     total = int(st.get("total") or 0)
-    lvl = int(math.isqrt(total)) if total > 0 else 0
-    nxt = (lvl + 1) ** 2
-    prog = (total - lvl * lvl) / max(1, nxt - lvl * lvl)
+    lvl, prog = age_level(C)
+    if lvl is None:  # no age configured → fall back to a level from contributions
+        lvl = int(math.isqrt(total)) if total > 0 else 0
+        prog = (total - lvl * lvl) / max(1, (lvl + 1) ** 2 - lvl * lvl)
+    ring = prog if prog is not None else 1.0
 
     parts = []
     # persona-style skewed shards behind the right side
@@ -176,7 +206,7 @@ def player_card(t, C, st, avatar):
     parts.append(f'<circle cx="{cx}" cy="{cy}" r="{R + 16}" fill="none" stroke="{LINE2}" stroke-width="4"/>')
     parts.append(f'<circle cx="{cx}" cy="{cy}" r="{R + 16}" fill="none" stroke="{ACC}" stroke-width="4" stroke-linecap="round" '
                  f'stroke-dasharray="0 {circ:.1f}" transform="rotate(-90 {cx} {cy})">'
-                 f'<animate attributeName="stroke-dasharray" values="0 {circ:.1f};{circ * prog:.1f} {circ:.1f}" dur="1.6s" fill="freeze" calcMode="spline" keySplines=".2 .8 .2 1"/></circle>')
+                 f'<animate attributeName="stroke-dasharray" values="0 {circ:.1f};{circ * ring:.1f} {circ:.1f}" dur="1.6s" fill="freeze" calcMode="spline" keySplines=".2 .8 .2 1"/></circle>')
     ticks = "".join(f'<line x1="{cx}" y1="{cy - R - 26}" x2="{cx}" y2="{cy - R - (32 if i % 6 == 0 else 29)}" stroke="{HI if i % 6 == 0 else MUTE}" stroke-width="{2 if i % 6 == 0 else 1}" transform="rotate({i * 7.5} {cx} {cy})"/>' for i in range(48))
     parts.append(f'<g>{ticks}<animateTransform attributeName="transform" type="rotate" from="0 {cx} {cy}" to="360 {cx} {cy}" dur="60s" repeatCount="indefinite"/></g>')
     lv, _ = t.path(t.monob, f"LV.{lvl}", 13, cx, cy + R + 52, HI, 1.5, "middle")
@@ -225,8 +255,14 @@ def player_card(t, C, st, avatar):
     # level bar
     bx, by, bw = x0, 334, 820
     parts.append(f'<rect x="{bx}" y="{by}" width="{bw}" height="8" rx="4" fill="{LINE2}"/>')
-    parts.append(f'<rect x="{bx}" y="{by}" width="0" height="8" rx="4" fill="{ACC}"><animate attributeName="width" values="0;{bw * prog:.1f}" dur="1.6s" fill="freeze" calcMode="spline" keySplines=".2 .8 .2 1"/></rect>')
-    p, _ = t.path(t.mono, f"LV.{lvl}  {round(prog * 100)}% to LV.{lvl + 1}  ·  {total} contributions all time  ·  levels = √contributions", 11, bx, by + 30, DIM)
+    if prog is not None:
+        parts.append(f'<rect x="{bx}" y="{by}" width="0" height="8" rx="4" fill="{ACC}"><animate attributeName="width" values="0;{bw * prog:.1f}" dur="1.6s" fill="freeze" calcMode="spline" keySplines=".2 .8 .2 1"/></rect>')
+        txt = f"LV.{lvl}  {round(prog * 100)}% to LV.{lvl + 1}  ·  level = age  ·  levels up every birthday  ·  {total} contributions all time"
+    else:
+        # no birthday set: a scanning sweep instead of a fake progress number
+        parts.append(f'<rect x="{bx}" y="{by}" width="120" height="8" rx="4" fill="{ACC}" fill-opacity=".8"><animate attributeName="x" values="{bx};{bx + bw - 120};{bx}" dur="5s" repeatCount="indefinite" calcMode="spline" keySplines=".4 0 .6 1;.4 0 .6 1"/></rect>')
+        txt = f"LV.{lvl}  ·  level = age  ·  {total} contributions all time"
+    p, _ = t.path(t.mono, txt, 11, bx, by + 30, DIM)
     parts.append(p)
 
     # rank
