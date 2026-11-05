@@ -96,6 +96,7 @@
   /* ---------------- sections + rail ---------------- */
   const sections = $$("main > section");
   const rail = $("#rail");
+  sections.forEach((s, i) => (s.dataset.num = String(i).padStart(2, "0")));
   sections.forEach((s) => {
     const { num, file, title } = s.dataset;
     rail.insertAdjacentHTML("beforeend", `<a href="#${s.id}" data-nav data-label="${esc(title)}">${esc(num)}</a>`);
@@ -142,16 +143,19 @@
     const target = document.getElementById(id);
     if (!target || navigating) return;
     history.replaceState(null, "", id === "home" ? location.pathname : "#" + id);
+    if (window.__warp) window.__warp();
+    whoosh();
     if (!fxOn || reduceMotion) { target.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth" }); return; }
     navigating = true;
+    $("#wipeLabel").textContent = "» " + (target.dataset.title || "");
     wipe.className = "in";
     setTimeout(() => {
       root.style.scrollBehavior = "auto";
       target.scrollIntoView();
       root.style.scrollBehavior = "";
       wipe.className = "out";
-      setTimeout(() => { wipe.className = ""; navigating = false; }, 700);
-    }, 600);
+      setTimeout(() => { wipe.className = ""; navigating = false; }, 720);
+    }, 640);
   }
   document.addEventListener("click", (e) => {
     const a = e.target.closest("a[data-nav]");
@@ -171,6 +175,7 @@
     sections.forEach((s, i) => { if (s.getBoundingClientRect().top <= line) idx = i; });
     if (idx !== activeIdx) {
       activeIdx = idx;
+      stats.seen.add(sections[idx].id);
       railLinks.forEach((a, i) => a.classList.toggle("active", i === idx));
       hudFile.textContent = sections[idx].dataset.file;
       hudNum.textContent = sections[idx].dataset.num;
@@ -217,30 +222,35 @@
 
   /* ---------------- fx canvas: trail + click bursts ---------------- */
   const fx = $("#fx"), fctx = fx.getContext("2d");
-  const tri = $("#triangles"), tctx = tri.getContext("2d");
   let W = 0, H = 0, DPR = 1;
   function resize() {
     W = innerWidth; H = innerHeight; DPR = Math.min(devicePixelRatio || 1, 2);
     fx.width = W * DPR; fx.height = H * DPR; fctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-    tri.width = W; tri.height = H;
-    seedTriangles();
   }
-  const bursts = [];
+  const bursts = [], charPops = [];
   const comboEl = $("#combo"), comboN = $("#comboN");
   let combo = 0, comboT;
   function judge() {
     const b = window.__beat || 0;
     const r = Math.random();
     if (r < 0.025) return "miss";
-    if (isPlaying()) return b > 0.5 ? "300" : b > 0.22 ? "100" : "50";
+    if (isPlaying() && b > 0.35) return "300"; // on the beat
+    if (isPlaying() && b > 0.1) return r < 0.8 ? "300" : "100";
     return r < 0.75 ? "300" : r < 0.94 ? "100" : "50";
   }
   function hit(x, y, forced) {
     if (!fxOn) return;
     const j = forced || judge();
     bursts.push({ x, y, t: performance.now(), j, parts: Array.from({ length: 10 }, () => ({ a: Math.random() * Math.PI * 2, v: 40 + Math.random() * 70 })) });
-    if (j === "miss") { combo = 0; comboEl.classList.add("broke"); comboN.textContent = "0"; }
-    else { combo++; comboEl.classList.remove("broke"); comboN.textContent = combo; }
+    hitSound(j);
+    if (j === "miss") { stats.miss++; combo = 0; comboEl.classList.add("broke"); comboN.textContent = "0"; }
+    else {
+      stats["n" + j]++;
+      stats.score += Math.round(+j * (1 + combo / 25) * modMult());
+      combo++; stats.maxCombo = Math.max(stats.maxCombo, combo);
+      comboEl.classList.remove("broke"); comboN.textContent = combo;
+      if (combo % 50 === 0) toast(`${combo} combo!`);
+    }
     comboEl.classList.add("show");
     comboEl.classList.remove("pop"); void comboEl.offsetWidth; comboEl.classList.add("pop");
     clearTimeout(comboT);
@@ -248,10 +258,10 @@
   }
   addEventListener("pointerdown", (e) => { if (!body.classList.contains("is-intro")) hit(e.clientX, e.clientY); });
 
-  const JC = { 300: "#6ee7a0", 100: "#ffd166", 50: "#d6d6da", miss: "#ff5d73" };
+  const JC = { 300: "#4fe3ff", 100: "#6ee7a0", 50: "#ffd166", miss: "#ff5d73" };
   function drawFx(now) {
     fctx.clearRect(0, 0, W, H);
-    if (!fxOn) { trail.length = 0; bursts.length = 0; return; }
+    if (!fxOn) { trail.length = 0; bursts.length = 0; charPops.length = 0; return; }
     // trail
     while (trail.length && now - trail[0].t > 260) trail.shift();
     for (let i = 0; i < trail.length; i++) {
@@ -260,6 +270,19 @@
       fctx.arc(p.x, p.y, 1 + k * 3.2, 0, Math.PI * 2);
       fctx.fillStyle = `rgba(255,255,255,${k * 0.35})`;
       fctx.fill();
+    }
+    // typed-character pops
+    for (let i = charPops.length - 1; i >= 0; i--) {
+      const p = charPops[i], e = (now - p.t) / 650;
+      if (e > 1) { charPops.splice(i, 1); continue; }
+      fctx.globalAlpha = 1 - e;
+      fctx.font = `600 ${14 + e * 8}px JetBrains Mono, monospace`;
+      fctx.textAlign = "center";
+      fctx.fillStyle = "#4fe3ff";
+      fctx.fillText(p.ch, p.x + p.vx * e, p.y - 12 - e * 28);
+      fctx.beginPath(); fctx.arc(p.x, p.y, 3 + e * 16, 0, Math.PI * 2);
+      fctx.strokeStyle = `rgba(79,227,255,${(1 - e) * 0.6})`; fctx.lineWidth = 1.2; fctx.stroke();
+      fctx.globalAlpha = 1;
     }
     // bursts
     for (let i = bursts.length - 1; i >= 0; i--) {
@@ -296,36 +319,6 @@
     }
   }
 
-  /* ---------------- triangles background ---------------- */
-  let tris = [];
-  function seedTriangles() {
-    const n = Math.round(clamp((W * H) / 22000, 24, 90));
-    tris = Array.from({ length: n }, () => ({
-      x: Math.random() * W, y: Math.random() * H, s: 20 + Math.random() * 120,
-      v: 0.15 + Math.random() * 0.5, g: 30 + Math.random() * 60, a: 0.03 + Math.random() * 0.07, z: 0.2 + Math.random() * 0.8,
-      o: Math.random() < 0.3,
-    }));
-  }
-  function drawTriangles() {
-    const b = window.__beat || 0;
-    tctx.clearRect(0, 0, W, H);
-    const par = scrollY * 0.06;
-    for (const t of tris) {
-      if (fxOn) t.y -= t.v * (1 + b * 3) * t.z;
-      if (t.y < -t.s * 1.2) { t.y = H + t.s; t.x = Math.random() * W; }
-      const y = ((t.y - par * t.z) % (H + t.s * 2) + H + t.s * 2) % (H + t.s * 2) - t.s;
-      const h = t.s * 0.866;
-      tctx.beginPath();
-      tctx.moveTo(t.x, y - h / 2);
-      tctx.lineTo(t.x - t.s / 2, y + h / 2);
-      tctx.lineTo(t.x + t.s / 2, y + h / 2);
-      tctx.closePath();
-      const a = t.a * (1 + b * 1.4);
-      if (t.o) { tctx.strokeStyle = `rgba(255,255,255,${a * 1.4})`; tctx.lineWidth = 1; tctx.stroke(); }
-      else { tctx.fillStyle = `rgba(${t.g},${t.g},${t.g + 4},${a * 4})`; tctx.fill(); }
-    }
-  }
-
   /* ---------------- audio ---------------- */
   const M = C.music || {};
   const audio = $("#audio"), player = $("#player");
@@ -337,12 +330,23 @@
   audio.src = M.src || "";
   audio.volume = clamp(store.get("vol", M.volume ?? 0.45), 0, 1);
   pVol.value = audio.volume;
-  let actx, analyser, freq;
+  let actx, analyser, freq, sfxBus;
+  function getCtx() {
+    if (!actx) {
+      try {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        actx = new AC();
+        sfxBus = actx.createGain();
+        sfxBus.gain.value = 0.55;
+        sfxBus.connect(actx.destination);
+      } catch { return null; }
+    }
+    if (actx.state === "suspended") actx.resume();
+    return actx;
+  }
   function ensureGraph() {
-    if (actx) return;
+    if (analyser || !getCtx()) return;
     try {
-      const AC = window.AudioContext || window.webkitAudioContext;
-      actx = new AC();
       const src = actx.createMediaElementSource(audio);
       analyser = actx.createAnalyser();
       analyser.fftSize = 256;
@@ -424,7 +428,144 @@
     }
   }
 
+  /* ---------------- synthesized sound effects (no samples) ---------------- */
+  const KEY_MODES = ["click", "thock", "typewriter", "pop", "piano", "off"];
+  let keyMode = KEY_MODES.includes(store.get("keys", "click")) ? store.get("keys", "click") : "click";
+  let hitOn = store.get("hits", true);
+  let noiseB = null;
+  function noiseSrc(c) {
+    if (!noiseB) {
+      noiseB = c.createBuffer(1, c.sampleRate, c.sampleRate);
+      const d = noiseB.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    }
+    const n = c.createBufferSource();
+    n.buffer = noiseB;
+    return n;
+  }
+  function envTo(c, node, t, peak, dur, attack = 0.002) {
+    const g = c.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(peak, t + attack);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    node.connect(g); g.connect(sfxBus);
+  }
+  function burst(c, t, { type = "bandpass", f = 3000, q = 1, peak = 0.5, dur = 0.04 }) {
+    const n = noiseSrc(c), bq = c.createBiquadFilter();
+    bq.type = type; bq.frequency.value = f; bq.Q.value = q;
+    n.connect(bq); envTo(c, bq, t, peak, dur);
+    n.start(t, Math.random() * 0.5); n.stop(t + dur + 0.03);
+  }
+  function tone(c, t, { wave = "sine", f = 440, f2 = 0, peak = 0.3, dur = 0.08, attack = 0.002 }) {
+    const o = c.createOscillator();
+    o.type = wave; o.frequency.setValueAtTime(f, t);
+    if (f2) o.frequency.exponentialRampToValueAtTime(f2, t + dur);
+    envTo(c, o, t, peak, dur, attack);
+    o.start(t); o.stop(t + dur + 0.03);
+  }
+  const PENTA = [0, 2, 4, 7, 9];
+  let pianoStep = 5;
+  function keySound(kind) {
+    if (keyMode === "off") return;
+    const c = getCtx();
+    if (!c) return;
+    const t = c.currentTime, r = Math.random(), sp = kind === "space", bk = kind === "back", en = kind === "enter";
+    if (keyMode === "click") {
+      burst(c, t, { f: sp ? 1400 : 2600 + r * 1600, q: 1.4, peak: bk ? 0.25 : 0.5, dur: sp ? 0.05 : 0.03 });
+      tone(c, t, { f: sp ? 130 : 190 + r * 40, f2: 60, peak: 0.28, dur: 0.045 });
+    } else if (keyMode === "thock") {
+      burst(c, t, { type: "lowpass", f: sp ? 700 : 1100 + r * 300, q: 0.7, peak: 0.7, dur: 0.06 });
+      tone(c, t, { f: sp ? 95 : 140 + r * 20, f2: 55, peak: 0.45, dur: 0.07 });
+    } else if (keyMode === "typewriter") {
+      burst(c, t, { type: "highpass", f: 2500, q: 0.8, peak: 0.35, dur: 0.018 });
+      burst(c, t + 0.004, { f: 3600 + r * 500, q: 9, peak: 0.45, dur: 0.05 });
+      if (en) { tone(c, t + 0.03, { f: 2093, peak: 0.18, dur: 0.9, attack: 0.003 }); tone(c, t + 0.03, { f: 3136, peak: 0.08, dur: 0.7 }); }
+    } else if (keyMode === "pop") {
+      tone(c, t, { f: sp ? 420 : 700 + r * 350, f2: sp ? 160 : 240, peak: 0.32, dur: 0.07 });
+    } else if (keyMode === "piano") {
+      const step = bk ? -1 : sp ? 0 : r < 0.7 ? 1 : -1;
+      pianoStep = clamp(pianoStep + step, 0, 14);
+      const semis = Math.floor(pianoStep / 5) * 12 + PENTA[pianoStep % 5];
+      const f = 261.63 * Math.pow(2, semis / 12) * (sp ? 0.5 : 1);
+      tone(c, t, { wave: "triangle", f, peak: 0.22, dur: 0.5, attack: 0.004 });
+      tone(c, t, { f: f * 2, peak: 0.05, dur: 0.3 });
+    }
+  }
+  function hitSound(j) {
+    if (!hitOn) return;
+    const c = getCtx();
+    if (!c) return;
+    const t = c.currentTime;
+    if (j === "miss") { tone(c, t, { wave: "sawtooth", f: 300, f2: 70, peak: 0.1, dur: 0.35 }); return; }
+    burst(c, t, { f: 5200, q: 2, peak: 0.22, dur: 0.03 });
+    tone(c, t, { f: j === "300" ? 880 : j === "100" ? 740 : 620, f2: 420, peak: 0.13, dur: 0.06 });
+  }
+  function whoosh() {
+    if (!hitOn) return;
+    const c = getCtx();
+    if (!c) return;
+    const t = c.currentTime, n = noiseSrc(c), bq = c.createBiquadFilter();
+    bq.type = "bandpass"; bq.Q.value = 0.9;
+    bq.frequency.setValueAtTime(300, t); bq.frequency.exponentialRampToValueAtTime(4200, t + 0.45);
+    n.connect(bq); envTo(c, bq, t, 0.2, 0.55, 0.15);
+    n.start(t); n.stop(t + 0.6);
+  }
+  function setKeyMode(m) { keyMode = m; store.set("keys", m); renderSoundPicker(); keySound("key"); toast("keyboard sound: " + m); }
+  function cycleKeyMode() { setKeyMode(KEY_MODES[(KEY_MODES.indexOf(keyMode) + 1) % KEY_MODES.length]); }
+  function renderSoundPicker() {
+    const el = $("#ttSound");
+    if (!el) return;
+    el.innerHTML = `<span>sound</span>` + KEY_MODES.map((m) => `<button data-km="${m}" class="${m === keyMode ? "on" : ""}">${m}</button>`).join("");
+  }
+  document.addEventListener("click", (e) => { const b = e.target.closest("[data-km]"); if (b) setKeyMode(b.dataset.km); });
+
+  /* ---------------- score / accuracy / mods ---------------- */
+  const stats = { n300: 0, n100: 0, n50: 0, miss: 0, score: 0, maxCombo: 0, t0: Date.now(), seen: new Set(), mods: new Set() };
+  const hitsTotal = () => stats.n300 + stats.n100 + stats.n50 + stats.miss;
+  const accuracy = () => { const n = hitsTotal(); return n ? (300 * stats.n300 + 100 * stats.n100 + 50 * stats.n50) / (300 * n) : 1; };
+  // osu!-standard style ranking (by share of 300s, 50s and misses)
+  function grade() {
+    const n = hitsTotal();
+    if (!n) return "SS";
+    const p300 = stats.n300 / n, p50 = stats.n50 / n;
+    if (p300 === 1) return "SS";
+    if (p300 > 0.9 && p50 < 0.01 && !stats.miss) return "S";
+    if ((p300 > 0.8 && !stats.miss) || p300 > 0.9) return "A";
+    if ((p300 > 0.7 && !stats.miss) || p300 > 0.8) return "B";
+    if (p300 > 0.6) return "C";
+    return "D";
+  }
+  const MODS = { HT: "half time — even more slowed", DT: "double time", NC: "nightcore", FL: "flashlight", AT: "autopilot — auto-scroll the page" };
+  const mods = new Set((store.get("mods", []) || []).filter((m) => m in MODS));
+  const modMult = () => [...mods].reduce((k, m) => k * ({ HT: 0.5, DT: 1.12, NC: 1.12, FL: 1.12, AT: 1 }[m] || 1), 1);
+  function applyMods() {
+    const rate = mods.has("HT") ? 0.75 : mods.has("DT") || mods.has("NC") ? 1.5 : 1;
+    const keepPitch = !(mods.has("NC") || mods.has("HT"));
+    audio.defaultPlaybackRate = rate;
+    audio.playbackRate = rate;
+    audio.preservesPitch = keepPitch; audio.mozPreservesPitch = keepPitch; audio.webkitPreservesPitch = keepPitch;
+    Object.keys(MODS).forEach((m) => body.classList.toggle("mod-" + m, mods.has(m)));
+    $("#hudMods").innerHTML = [...mods].map((m) => `<span class="mod">${m}</span>`).join("");
+    mods.forEach((m) => stats.mods.add(m));
+    store.set("mods", [...mods]);
+  }
+  function toggleMod(m) {
+    if (mods.has(m)) mods.delete(m);
+    else {
+      mods.add(m);
+      const ex = { HT: ["DT", "NC"], DT: ["HT", "NC"], NC: ["HT", "DT"] }[m] || [];
+      ex.forEach((x) => mods.delete(x));
+    }
+    applyMods();
+    toast(`${m} ${mods.has(m) ? "on" : "off"} · ${MODS[m]}`);
+  }
+  let atPauseUntil = 0;
+  addEventListener("wheel", () => (atPauseUntil = Date.now() + 2500), { passive: true });
+  addEventListener("touchmove", () => (atPauseUntil = Date.now() + 2500), { passive: true });
+
   /* ---------------- main loop ---------------- */
+  const scoreEl = $("#score"), accEl = $("#acc");
+  let dispScore = 0;
   function loop(now) {
     // cursor
     rx += (mx - rx) * 0.16; ry += (my - ry) * 0.16;
@@ -433,16 +574,25 @@
     ring.style.transform = `translate3d(${rx}px,${ry}px,0)`;
     if (fxOn) glow.style.transform = `translate3d(${gx}px,${gy}px,0)`;
     audioFrame();
-    drawTriangles();
     drawFx(now);
+    // score roll
+    dispScore += (stats.score - dispScore) * 0.12;
+    scoreEl.textContent = String(Math.round(dispScore)).padStart(8, "0");
+    accEl.textContent = (accuracy() * 100).toFixed(2) + "%";
+    if (mods.has("FL")) { root.style.setProperty("--flx", (body.classList.contains("has-mouse") ? mx : innerWidth / 2) + "px"); root.style.setProperty("--fly", (body.classList.contains("has-mouse") ? my : innerHeight / 2) + "px"); }
+    if (mods.has("AT") && !navigating && !body.classList.contains("is-intro") && Date.now() > atPauseUntil && pal.hidden) window.scrollBy({ top: 1.4, behavior: "instant" });
     requestAnimationFrame(loop);
   }
 
   /* ---------------- palette ---------------- */
   const pal = $("#palette"), palInput = $("#palInput"), palList = $("#palList");
   const actions = [
-    { t: "play / pause music", f: "m", run: toggleMusic },
-    { t: "toggle effects", f: "fx", run: toggleFx },
+    { t: "play / pause music", f: "m", run: toggleMusic, on: () => isPlaying() },
+    { t: "toggle effects", f: "fx", run: toggleFx, on: () => fxOn },
+    ...Object.keys(MODS).map((m) => ({ t: `mod ${m} · ${MODS[m]}`, f: m, run: () => toggleMod(m), on: () => mods.has(m), keep: true })),
+    { t: () => `keyboard sound: ${keyMode} (cycle)`, f: "keys", run: cycleKeyMode, keep: true },
+    { t: "hit sounds", f: "sfx", run: () => { hitOn = !hitOn; store.set("hits", hitOn); toast("hit sounds " + (hitOn ? "on" : "off")); }, on: () => hitOn, keep: true },
+    { t: "show my results", f: "results", run: () => go("results") },
     { t: "copy email", f: "email", run: () => (has(C.email) ? copy(C.email, "email") : toast("email not set yet")) },
     { t: "copy discord username", f: "discord", run: () => copy(C.discord?.username, "discord username") },
     { t: "open github", f: "↗", run: () => window.open(`https://github.com/${C.github}`, "_blank", "noopener") },
@@ -460,14 +610,14 @@
   function renderPal() {
     const q = palInput.value.trim();
     const secs = sections.map((s) => ({ kind: "section", n: s.dataset.num, t: s.dataset.title, f: s.dataset.file, run: () => go(s.id) }));
-    const acts = actions.map((a) => ({ kind: "action", n: "›", ...a }));
+    const acts = actions.map((a) => ({ kind: "action", n: "›", ...a, t: typeof a.t === "function" ? a.t() : a.t, isOn: a.on ? a.on() : null }));
     const score = (it) => Math.max(fuzzy(q, it.t), fuzzy(q, it.f), fuzzy(q, it.n));
     const fs = secs.filter((it) => score(it) > 0), fa = acts.filter((it) => score(it) > 0);
     if (q) { fs.sort((a, b) => score(b) - score(a)); fa.sort((a, b) => score(b) - score(a)); }
     palItems = [...fs, ...fa];
     palSel = clamp(palSel, 0, Math.max(0, palItems.length - 1));
     let html = "", idx = 0;
-    const row = (it) => `<li role="option" data-i="${idx}" class="${idx++ === palSel ? "sel" : ""}" aria-selected="${idx - 1 === palSel}"><span class="n">${esc(it.n)}</span><span class="t">${esc(it.t)}</span><span class="f">${esc(it.f)}</span></li>`;
+    const row = (it) => `<li role="option" data-i="${idx}" class="${idx++ === palSel ? "sel" : ""}" aria-selected="${idx - 1 === palSel}"><span class="n">${esc(it.n)}</span><span class="t">${esc(it.t)}</span>${it.isOn ? '<span class="on-badge">ON</span>' : ""}<span class="f">${esc(it.f)}</span></li>`;
     if (fs.length) html += `<li class="grp" aria-hidden="true">sections</li>` + fs.map(row).join("");
     if (fa.length) html += `<li class="grp" aria-hidden="true">actions</li>` + fa.map(row).join("");
     palList.innerHTML = html || `<li class="empty">no match for "${esc(q)}"</li>`;
@@ -480,7 +630,12 @@
     pal.hidden = false; palInput.value = ""; palSel = 0; renderPal(); palInput.focus();
   }
   function closePal() { pal.hidden = true; if (lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll: true }); }
-  function runPal(i) { const it = palItems[i]; if (!it) return; closePal(); it.run(); }
+  function runPal(i) {
+    const it = palItems[i];
+    if (!it) return;
+    if (it.keep) { it.run(); renderPal(); return; } // toggles keep the menu open
+    closePal(); it.run();
+  }
   palInput.addEventListener("input", () => { palSel = 0; renderPal(); });
   palInput.addEventListener("keydown", (e) => {
     if (e.key === "ArrowDown") { e.preventDefault(); palSel = (palSel + 1) % Math.max(1, palItems.length); renderPal(); }
@@ -513,35 +668,102 @@
     else if (e.key === "k") go(sections[Math.max(activeIdx - 1, 0)].id);
   });
 
-  /* ---------------- intro ---------------- */
+  /* ---------------- intro: tune into the signal ---------------- */
   const intro = $("#intro");
-  let entered = false;
+  let entered = false, enteredAt = 0, overTuner = false;
+  const tunerBtn = $("#introGo");
+  {
+    const roles = (C.roles || []).filter(has).map((r) => r.replace(/^(an?|the)\s+/i, "").toUpperCase());
+    const bandText = `  ${(C.name || "").toUpperCase()}  ✦  ${roles.join("  ✦  ")}  ✦  SIGNAL FROM NOISE  ✦`;
+    $$(".band-track", intro).forEach((t) => (t.textContent = bandText.repeat(6)));
+    let ticks = "";
+    for (let i = 0; i < 120; i++) {
+      const a = (i / 120) * Math.PI * 2, major = i % 10 === 0, r1 = 146, r2 = major ? 132 : 139;
+      ticks += `<line x1="${(150 + Math.cos(a) * r1).toFixed(1)}" y1="${(150 + Math.sin(a) * r1).toFixed(1)}" x2="${(150 + Math.cos(a) * r2).toFixed(1)}" y2="${(150 + Math.sin(a) * r2).toFixed(1)}" stroke="${major ? "#4fe3ff" : "rgba(255,255,255,.35)"}" stroke-width="${major ? 2.2 : 1}"/>`;
+    }
+    $("#tunerTicks").innerHTML = ticks;
+    tunerBtn.addEventListener("pointerenter", () => (overTuner = true));
+    tunerBtn.addEventListener("pointerleave", () => (overTuner = false));
+    tunerBtn.addEventListener("focus", () => (overTuner = true));
+    tunerBtn.addEventListener("blur", () => (overTuner = false));
+  }
+  const wave = $("#introWave"), wctx = wave.getContext("2d");
+  const gauss = () => { let u = 0, v = 0; while (!u) u = Math.random(); while (!v) v = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); };
+  let noiseLvl = 1.6, lastReadout = 0;
+  const introT0 = performance.now();
+  const sigBars = $$("#sigBars i");
+  function introFrame(now) {
+    if (entered && now - enteredAt > 1600) return;
+    const w = wave.clientWidth, h = wave.clientHeight, dpr = Math.min(devicePixelRatio || 1, 2);
+    if (wave.width !== Math.round(w * dpr)) { wave.width = Math.round(w * dpr); wave.height = Math.round(h * dpr); }
+    wctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    wctx.clearRect(0, 0, w, h);
+    const cx = innerWidth / 2, cy = innerHeight / 2;
+    let target;
+    if (entered) target = 0.0;
+    else if (overTuner) target = 0.03;
+    else if (body.classList.contains("has-mouse")) target = clamp((Math.hypot(mx - cx, my - cy) - 110) / (Math.hypot(cx, cy) - 110), 0.05, 1) * 1.6;
+    else target = Math.max(0.08, 1.6 * (1 - (now - introT0) / 5000)); // touch: tunes itself
+    const fdt = Math.min(0.1, (now - (introFrame._t || now)) / 1000);
+    introFrame._t = now;
+    noiseLvl += (target - noiseLvl) * (1 - Math.exp(-fdt * 4.5));
+    const sigma = Math.max(0.004, noiseLvl * 0.55); // noise std, relative to unit signal amplitude
+    const amp = h * 0.2, t = now / 1000;
+    const pass = (noisy, style, lw) => {
+      wctx.beginPath();
+      for (let x = 0; x <= w; x += 3) {
+        const env = Math.pow(Math.sin((Math.PI * x) / w), 1.4);
+        const y = h / 2 - env * amp * (Math.sin((x / w) * Math.PI * 2 * 7 - t * 2.2) + (noisy ? sigma * gauss() : 0));
+        x ? wctx.lineTo(x, y) : wctx.moveTo(x, y);
+      }
+      wctx.strokeStyle = style; wctx.lineWidth = lw; wctx.stroke();
+    };
+    const clean = 1 - Math.min(1, noiseLvl / 1.6);
+    pass(false, `rgba(79,227,255,${0.1 + 0.55 * clean})`, 2);
+    pass(true, `rgba(255,255,255,${0.25 + 0.35 * (1 - clean)})`, 1.2);
+    if (now - lastReadout > 90) {
+      lastReadout = now;
+      const snr = 0.5 / (sigma * sigma); // signal power A²/2 with A = 1, noise power σ²
+      const db = 10 * Math.log10(snr), cap = 0.5 * Math.log2(1 + snr);
+      $("#introSnr").textContent = db.toFixed(1) + " dB";
+      $("#introCap").textContent = cap.toFixed(2) + " bits/use";
+      const lock = clamp((db + 2) / 28, 0, 1);
+      $("#introPct").textContent = "lock " + Math.round(lock * 100) + "%";
+      sigBars.forEach((b, i) => b.classList.toggle("on", i < Math.round(lock * 5)));
+      const k = $("#introKicker");
+      const locked = db > 20;
+      if (k._l !== locked) { k._l = locked; k.classList.toggle("locked", locked); scramble(k, locked ? "signal acquired" : "searching for signal", { dur: 400 }); }
+    }
+    requestAnimationFrame(introFrame);
+  }
+  requestAnimationFrame(introFrame);
+
   function enter(withSound) {
     if (entered) return;
     entered = true;
-    const c = $("#introGo").getBoundingClientRect();
-    intro.style.setProperty("--cx", c.left + c.width / 2 + "px");
-    intro.style.setProperty("--cy", c.top + c.height / 2 + "px");
+    enteredAt = performance.now();
     if (withSound) play();
-    intro.classList.add("burst");
+    else getCtx();
+    whoosh();
+    intro.classList.add("enter");
+    if (window.__sceneEnter) window.__sceneEnter();
+    const c = tunerBtn.getBoundingClientRect();
     hit(c.left + c.width / 2, c.top + c.height / 2, "300");
-    setTimeout(() => intro.classList.add("gone"), 180);
+    setTimeout(() => intro.classList.add("gone"), 700);
     setTimeout(() => {
       intro.classList.add("hidden");
       body.classList.remove("is-intro");
       startHero();
-      if (location.hash.length > 1) { const t = document.getElementById(location.hash.slice(1)); if (t) t.scrollIntoView(); }
-    }, 1150);
+      if (location.hash.length > 1) { const tg = document.getElementById(location.hash.slice(1)); if (tg) tg.scrollIntoView(); }
+    }, 1500);
   }
-  $("#introGo").addEventListener("click", () => enter(true));
+  tunerBtn.addEventListener("click", () => enter(true));
   $("#introSilent").addEventListener("click", () => enter(false));
-  (async () => {
-    const nameEl = $("#introName"), pct = $("#introPct");
-    const t0 = performance.now();
-    const p = () => { const k = clamp((performance.now() - t0) / 1600, 0, 1); pct.textContent = Math.round(k * 100) + "%"; if (k < 1) requestAnimationFrame(p); else $("#introKicker").textContent = "signal acquired"; };
-    requestAnimationFrame(p);
-    await scramble(nameEl, C.name || "", { dur: 1600 });
-  })();
+  {
+    const words = (C.name || "").split(/\s+/).filter(Boolean);
+    setTimeout(() => scramble($("#introA"), words[0] || "", { dur: 1300 }), 200);
+    setTimeout(() => scramble($("#introB"), words.slice(1).join(" "), { dur: 1300 }), 450);
+  }
 
   /* ---------------- hero ---------------- */
   async function startHero() {
@@ -1082,12 +1304,287 @@
     catch { el.textContent = ""; }
   })();
 
+  /* ---------------- persona-style date ---------------- */
+  function fillDates() {
+    const d = new Date(), h = d.getHours();
+    const md = `${String(d.getMonth() + 1).padStart(2, "0")}/${String(d.getDate()).padStart(2, "0")}`;
+    const wd = ["SU", "MO", "TU", "WE", "TH", "FR", "SA"][d.getDay()];
+    const ph = h < 5 ? "late night" : h < 8 ? "early morning" : h < 12 ? "morning" : h < 14 ? "midday" : h < 17 ? "afternoon" : h < 20 ? "evening" : "night";
+    $$(".pdate").forEach((el) => (el.innerHTML = `<span class="md">${md}</span><span class="wd">${wd}</span><span class="ph">${ph}</span>`));
+  }
+  fillDates();
+  setInterval(fillDates, 60000);
+
+  /* ---------------- typing feel: sounds, pops, live wpm (all inputs) ---------------- */
+  let mirror = null;
+  function caretXY(el) {
+    let pos = null;
+    try { pos = el.selectionEnd; } catch { pos = null; }
+    if (pos == null) pos = (el.value || "").length;
+    const cs = getComputedStyle(el), r = el.getBoundingClientRect();
+    if (!mirror) { mirror = document.createElement("div"); mirror.setAttribute("aria-hidden", "true"); document.body.appendChild(mirror); }
+    ["boxSizing", "width", "paddingTop", "paddingRight", "paddingBottom", "paddingLeft", "borderTopWidth", "borderRightWidth", "borderBottomWidth", "borderLeftWidth",
+      "fontFamily", "fontSize", "fontWeight", "fontStyle", "letterSpacing", "lineHeight", "textTransform", "wordSpacing", "tabSize"].forEach((k) => (mirror.style[k] = cs[k]));
+    Object.assign(mirror.style, { position: "absolute", visibility: "hidden", top: "0", left: "-9999px", height: "auto", overflow: "hidden", borderStyle: "solid",
+      whiteSpace: el.tagName === "TEXTAREA" ? "pre-wrap" : "pre", overflowWrap: "break-word" });
+    mirror.textContent = (el.value || "").slice(0, pos);
+    const sp = document.createElement("span");
+    sp.textContent = "​";
+    mirror.appendChild(sp);
+    const lh = parseFloat(cs.lineHeight) || parseFloat(cs.fontSize) * 1.4 || 18;
+    return { x: clamp(r.left + sp.offsetLeft - el.scrollLeft, r.left + 4, r.right - 4), y: clamp(r.top + sp.offsetTop - el.scrollTop + lh / 2, r.top + 4, r.bottom - 4) };
+  }
+  const typeTimes = [];
+  const hudWpm = $("#hudWpm"), hudWpmN = $("#hudWpmN");
+  let wpmHideT;
+  function bumpWpm() {
+    const now = performance.now();
+    typeTimes.push(now);
+    while (typeTimes.length && now - typeTimes[0] > 8000) typeTimes.shift();
+    if (typeTimes.length >= 4) {
+      const mins = Math.max(1500, now - typeTimes[0]) / 60000;
+      hudWpmN.textContent = Math.round(typeTimes.length / 5 / mins);
+      hudWpm.classList.add("show");
+    }
+    clearTimeout(wpmHideT);
+    wpmHideT = setTimeout(() => { hudWpm.classList.remove("show"); typeTimes.length = 0; }, 2500);
+  }
+  function pulse(el) { el.classList.remove("typing-pulse"); void el.offsetWidth; el.classList.add("typing-pulse"); }
+  document.addEventListener("keydown", (e) => {
+    const el = e.target;
+    if (!editable(el) || el.id === "ttInput" || e.ctrlKey || e.metaKey || e.altKey) return;
+    let kind = null;
+    if (e.key.length === 1) kind = e.key === " " ? "space" : "key";
+    else if (e.key === "Backspace") kind = "back";
+    else if (e.key === "Enter") kind = "enter";
+    if (!kind) return;
+    keySound(kind);
+    if (el.type === "range" || el.type === "radio" || el.type === "checkbox") return;
+    pulse(el);
+    if (kind === "key" || kind === "space") bumpWpm();
+    if (fxOn && kind === "key") requestAnimationFrame(() => { const p = caretXY(el); charPops.push({ x: p.x, y: p.y, ch: e.key, t: performance.now(), vx: (Math.random() - 0.5) * 30 }); });
+  }, true);
+
+  /* ---------------- type test ---------------- */
+  const TT = (() => {
+    const WORDS = ("signal noise bit entropy message channel code light music river window coffee orbit cloud random pattern answer question simple theory proof idea " +
+      "learn build dream night morning city ocean planet star system logic shape color sound rhythm number story letter friend world future memory power energy space " +
+      "time focus quiet storm wave field point line circle square motion balance chance choice moment reason truth source compress decode encode measure surprise order " +
+      "chaos layer graph limit value nothing everything human brain paper write read think play make share open close begin finish small large ancient modern bright " +
+      "silver cyan black white mirror garden winter summer echo pulse spark thread signal clock").split(" ");
+    const box = $("#ttBox"), wordsEl = $("#ttWords"), caret = $("#ttCaret"), inp = $("#ttInput"), result = $("#ttResult"), live = $(".tt-live");
+    const timerEl = $("#ttTimer"), wpmEl = $("#ttWpm"), accEl2 = $("#ttAcc"), pbEl = $("#ttPb");
+    $("#ttFocus").textContent = "click here, then just type";
+    let mode = store.get("ttMode", { m: "time", n: 30 });
+    if (!mode || !["time", "words"].includes(mode.m)) mode = { m: "time", n: 30 };
+    let words = [], typed = [], wi = 0, started = 0, ended = false, timer = null, keys = 0, goodKeys = 0;
+    const SENT = "​";
+    const pbKey = () => `pb:${mode.m}${mode.n}`;
+    function gen(n) {
+      const out = [];
+      for (let i = 0; i < n; i++) { let w; do { w = WORDS[(Math.random() * WORDS.length) | 0]; } while (w === out[i - 1]); out.push(w); }
+      return out;
+    }
+    function updateWord(i) {
+      const el = wordsEl.children[i];
+      if (!el) return;
+      const w = words[i], t = typed[i];
+      let html = "";
+      for (let k = 0; k < Math.max(w.length, t.length); k++) {
+        if (k < w.length) html += `<span class="l ${k < t.length ? (t[k] === w[k] ? "ok" : "bad") : ""}">${esc(w[k])}</span>`;
+        else html += `<span class="l extra">${esc(t[k])}</span>`;
+      }
+      el.innerHTML = html;
+      el.classList.toggle("err", i < wi && t !== w);
+    }
+    function placeCaret(depth = 0) {
+      const el = wordsEl.children[wi];
+      if (!el) return;
+      const ls = el.children, n = typed[wi].length;
+      const lh = el.offsetHeight || 1;
+      const firstVisible = [...wordsEl.children].find((w) => !w.classList.contains("gone"));
+      const rel = el.offsetTop - (firstVisible ? firstVisible.offsetTop : 0);
+      if (rel >= lh * 2 - 2 && depth < 3) {
+        const top0 = firstVisible.offsetTop;
+        [...wordsEl.children].forEach((w, i) => { if (i < wi && !w.classList.contains("gone") && w.offsetTop === top0) w.classList.add("gone"); });
+        return placeCaret(depth + 1);
+      }
+      const l = n < ls.length ? ls[n] : ls[ls.length - 1];
+      const x = n < ls.length ? l.offsetLeft : l.offsetLeft + l.offsetWidth;
+      caret.style.transform = `translate(${x}px, ${el.offsetTop}px)`;
+    }
+    function stat() {
+      const mins = Math.max(1e-6, ((ended ? endAt : performance.now()) - started) / 60000);
+      let correct = 0;
+      for (let i = 0; i < wi; i++) if (typed[i] === words[i]) correct += words[i].length + (i < words.length - 1 ? 1 : 0); // +1 = the space after it
+      if (wi < words.length && typed[wi] && words[wi].startsWith(typed[wi])) correct += typed[wi].length;
+      return { wpm: correct / 5 / mins, raw: keys / 5 / mins, acc: keys ? (goodKeys / keys) * 100 : 100, secs: mins * 60 };
+    }
+    let endAt = 0;
+    function tick() {
+      if (!started || ended) return;
+      const st = stat();
+      wpmEl.textContent = Math.round(st.wpm);
+      accEl2.textContent = Math.round(st.acc);
+      if (mode.m === "time") {
+        const left = mode.n - (performance.now() - started) / 1000;
+        timerEl.textContent = Math.max(0, Math.ceil(left));
+        if (left <= 0) finish();
+      }
+    }
+    function start() { if (!started) { started = performance.now(); timer = setInterval(tick, 150); } }
+    function showPb() { const pb = store.get(pbKey(), 0); pbEl.textContent = pb ? `pb ${pb} wpm` : ""; }
+    function reset() {
+      clearInterval(timer); timer = null; started = 0; ended = false; wi = 0; keys = 0; goodKeys = 0;
+      words = gen(mode.m === "time" ? 140 : mode.n);
+      typed = words.map(() => "");
+      wordsEl.innerHTML = words.map((w, i) => `<div class="w" data-i="${i}">${[...w].map((ch) => `<span class="l">${esc(ch)}</span>`).join("")}</div>`).join("");
+      result.hidden = true; box.hidden = false; live.hidden = false;
+      timerEl.textContent = mode.m === "time" ? mode.n : `0/${mode.n}`;
+      wpmEl.textContent = "0"; accEl2.textContent = "100";
+      box.classList.remove("typing");
+      inp.value = SENT;
+      $$("#ttModes button").forEach((b) => b.classList.toggle("on", b.dataset.mode === mode.m && +b.dataset.n === mode.n));
+      showPb();
+      requestAnimationFrame(() => placeCaret());
+    }
+    function finish() {
+      if (ended) return;
+      endAt = performance.now();
+      ended = true;
+      clearInterval(timer);
+      const st = stat();
+      const wpm = Math.round(st.wpm), acc = st.acc;
+      // site grading for the test: accuracy bands
+      const g = acc >= 100 ? "SS" : acc >= 95 ? "S" : acc >= 90 ? "A" : acc >= 80 ? "B" : acc >= 70 ? "C" : "D";
+      const pb = store.get(pbKey(), 0);
+      const isPb = wpm > pb && acc >= 70;
+      if (isPb) store.set(pbKey(), wpm);
+      if (acc >= 70) store.set("bestWpm", Math.max(store.get("bestWpm", 0), wpm));
+      let ok = 0, bad = 0, extra = 0, missed = 0;
+      for (let i = 0; i < Math.min(wi + 1, words.length); i++) {
+        const w = words[i], t = typed[i];
+        for (let k = 0; k < Math.max(w.length, t.length); k++) {
+          if (k >= w.length) extra++; else if (k >= t.length) { if (i < wi) missed++; } else if (t[k] === w[k]) ok++; else bad++;
+        }
+      }
+      box.hidden = true; live.hidden = true; result.hidden = false;
+      result.innerHTML = `<div class="grade-big g-${g}">${g}</div>
+        <div><div class="tt-r-main">
+          <div><b>${wpm}</b><span>wpm</span></div>
+          <div><b class="acc">${acc.toFixed(1)}%</b><span>accuracy</span></div>
+          <div><b>${Math.round(st.raw)}</b><span>raw</span></div>
+          <div><b>${Math.round(st.secs)}s</b><span>${esc(mode.m)} ${mode.n}</span></div>
+        </div>
+        <div class="tt-r-sub">chars ${ok} correct · ${bad} wrong · ${extra} extra · ${missed} missed${isPb ? ' · <span class="pb">new personal best!</span>' : ""} · <kbd>tab</kbd> or <button class="linkish" id="ttAgain">restart</button></div></div>`;
+      $("#ttAgain").addEventListener("click", () => { reset(); inp.focus(); });
+      const r = result.getBoundingClientRect();
+      if (isPb) for (let i = 0; i < 6; i++) setTimeout(() => hit(r.left + 64, r.top + 64, "300"), i * 110);
+      inp.focus();
+    }
+    function typeChar(ch) {
+      if (ended) return;
+      start();
+      keySound("key");
+      keys++;
+      if (words[wi][typed[wi].length] === ch) goodKeys++;
+      if (typed[wi].length < words[wi].length + 8) typed[wi] += ch;
+      updateWord(wi); placeCaret();
+      box.classList.add("typing");
+      clearTimeout(box._t); box._t = setTimeout(() => box.classList.remove("typing"), 500);
+      if (mode.m === "words" && wi === words.length - 1 && typed[wi] === words[wi]) { wi++; finish(); }
+    }
+    function typeSpace() {
+      if (ended || !typed[wi].length) return;
+      start();
+      keySound("space");
+      keys++;
+      if (typed[wi] === words[wi]) goodKeys++;
+      wi++;
+      updateWord(wi - 1);
+      if (mode.m === "words") timerEl.textContent = `${wi}/${mode.n}`;
+      if (wi >= words.length) return finish();
+      placeCaret();
+    }
+    function typeBack(word) {
+      if (ended) return;
+      keySound("back");
+      if (word) typed[wi] = "";
+      else if (typed[wi].length) typed[wi] = typed[wi].slice(0, -1);
+      else if (wi > 0 && typed[wi - 1] !== words[wi - 1]) { wi--; const el = wordsEl.children[wi]; if (el) el.classList.remove("gone"); }
+      updateWord(wi); updateWord(wi + 1); placeCaret();
+    }
+    inp.addEventListener("keydown", (e) => {
+      if (e.key === "Tab") { e.preventDefault(); keySound("enter"); reset(); return; }
+      if (e.key === "Escape") { inp.blur(); return; }
+      if (e.key === "Backspace") { e.preventDefault(); typeBack(e.ctrlKey || e.altKey || e.metaKey); return; }
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      if (e.key === " ") { e.preventDefault(); typeSpace(); return; }
+      if (e.key.length === 1) { e.preventDefault(); typeChar(e.key); }
+    });
+    // mobile keyboards often send key "Unidentified": read what actually landed in the input
+    inp.addEventListener("input", () => {
+      const v = inp.value;
+      if (v === SENT) return;
+      if (!v.includes(SENT) && v.length === 0) typeBack(false);
+      else for (const ch of v.replace(SENT, "")) ch === " " ? typeSpace() : typeChar(ch);
+      inp.value = SENT;
+    });
+    inp.addEventListener("focus", () => box.classList.add("focused"));
+    inp.addEventListener("blur", () => box.classList.remove("focused"));
+    $("#ttModes").addEventListener("click", (e) => {
+      const b = e.target.closest("button[data-mode]");
+      if (!b) return;
+      mode = { m: b.dataset.mode, n: +b.dataset.n };
+      store.set("ttMode", mode);
+      reset();
+      inp.focus();
+    });
+    addEventListener("resize", () => placeCaret());
+    reset();
+    return { reset };
+  })();
+
+  /* ---------------- results screen ---------------- */
+  (() => {
+    const set = (id, v) => { const el = document.getElementById(id); if (el.textContent !== String(v)) el.textContent = v; };
+    const gEl = $("#resGrade");
+    let visible = false;
+    new IntersectionObserver(([e]) => (visible = e.isIntersecting)).observe($("#results"));
+    function update() {
+      if (!visible) return;
+      const g = grade();
+      if (gEl.textContent !== g) { gEl.textContent = g; gEl.className = "grade-big g-" + g; }
+      set("resGradeNote", hitsTotal() ? `${hitsTotal()} hits judged` : "click anything to start");
+      set("resScore", String(stats.score).padStart(8, "0"));
+      set("r300", stats.n300); set("r100", stats.n100); set("r50", stats.n50); set("rMiss", stats.miss);
+      set("rAcc", (accuracy() * 100).toFixed(2) + "%");
+      set("rCombo", stats.maxCombo + "x");
+      set("rExplored", `${stats.seen.size} / ${sections.length}`);
+      const secs = Math.floor((Date.now() - stats.t0) / 1000);
+      set("rTime", `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, "0")}`);
+      const bw = store.get("bestWpm", 0);
+      set("rWpm", bw ? bw + " wpm" : "—");
+      set("rMods", stats.mods.size ? [...stats.mods].join(" ") : "none");
+    }
+    setInterval(update, 400);
+    $("#resRetry").addEventListener("click", () => {
+      Object.assign(stats, { n300: 0, n100: 0, n50: 0, miss: 0, score: 0, maxCombo: 0, t0: Date.now() });
+      stats.seen = new Set([sections[activeIdx].id]);
+      stats.mods = new Set(mods);
+      combo = 0; comboN.textContent = "0";
+      toast("retrying…");
+    });
+  })();
+
   /* ---------------- boot ---------------- */
   addEventListener("resize", resize);
   resize();
+  applyMods();
+  renderSoundPicker();
   reveal();
   onScroll();
   requestAnimationFrame(loop);
   if (!finePointer) body.classList.remove("has-mouse");
-  window.__site = { go, openPal, toggleMusic, isPlaying, hit };
+  window.__site = { go, openPal, toggleMusic, isPlaying, hit, stats, grade, accuracy, toggleMod, TT };
 })();

@@ -9,7 +9,7 @@
   <meta property="og:title" content="Ahmad Hussain — signal from noise" />
   <meta property="og:description" content="aspiring information theorist, researcher, and a little bit of everything." />
   <meta property="og:type" content="website" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='26' fill='none' stroke='%23e5e5e5' stroke-width='5'/%3E%3Ccircle cx='32' cy='32' r='9' fill='%23ffd166'/%3E%3C/svg%3E" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='26' fill='none' stroke='%23e5e5e5' stroke-width='5'/%3E%3Ccircle cx='32' cy='32' r='9' fill='%234fe3ff'/%3E%3C/svg%3E" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;500;700;800&display=swap" rel="stylesheet" />
@@ -19,31 +19,50 @@
 
   <!-- ============ INTRO ============ -->
   <div id="intro" role="dialog" aria-label="Welcome">
-    <div class="intro-noise" aria-hidden="true"></div>
-    <div class="intro-inner">
-      <p class="intro-kicker mono" id="introKicker">acquiring signal</p>
-      <h1 class="intro-name" id="introName" aria-label="Ahmad Hussain"></h1>
-      <button class="intro-circle" id="introGo" aria-label="Enter the site with sound">
+    <div class="intro-bands" aria-hidden="true">
+      <div class="band band-a"><div class="band-track"></div></div>
+      <div class="band band-b"><div class="band-track"></div></div>
+    </div>
+    <canvas id="introWave" aria-hidden="true"></canvas>
+    <div class="pdate intro-pdate" aria-hidden="true"></div>
+    <div class="intro-sig mono" aria-hidden="true">
+      <div class="sig-bars" id="sigBars"><i></i><i></i><i></i><i></i><i></i></div>
+      <div><span class="dim">SNR</span> <b id="introSnr">—</b></div>
+      <div><span class="dim">C = ½log₂(1+SNR)</span> <b id="introCap">—</b></div>
+    </div>
+    <div class="intro-center">
+      <p class="intro-kicker mono" id="introKicker">searching for signal</p>
+      <button class="tuner" id="introGo" aria-label="Tune in: enter the site with sound">
+        <svg class="tuner-ticks" viewBox="0 0 300 300" aria-hidden="true"><g id="tunerTicks"></g></svg>
         <span class="approach" aria-hidden="true"></span>
         <span class="approach a2" aria-hidden="true"></span>
-        <span class="intro-circle-core">
-          <span class="intro-circle-label">tune in</span>
-          <span class="intro-circle-sub mono" id="introPct">0%</span>
+        <span class="tuner-ring" aria-hidden="true"></span>
+        <span class="tuner-core">
+          <span class="tuner-label">TUNE<br />IN</span>
+          <span class="tuner-sub mono" id="introPct">0%</span>
         </span>
       </button>
-      <p class="intro-hint mono">click the circle · or press <kbd>enter</kbd></p>
+      <p class="intro-hint mono">move closer to clean the signal · click or press <kbd>enter</kbd></p>
       <button class="intro-silent mono" id="introSilent">enter without sound</button>
     </div>
+    <h1 class="intro-title" aria-label="Ahmad Hussain">
+      <span class="it-a" id="introA"></span>
+      <span class="it-b"><span id="introB"></span></span>
+      <span class="intro-sticker mono">@nerdatronic</span>
+    </h1>
+    <div class="intro-flash" aria-hidden="true"></div>
   </div>
 
   <!-- ============ AMBIENCE ============ -->
-  <canvas id="triangles" aria-hidden="true"></canvas>
+  <div id="space" aria-hidden="true"></div>
   <div id="glow" aria-hidden="true"></div>
   <div class="grain" aria-hidden="true"></div>
+  <div id="kiai" aria-hidden="true"></div>
+  <div id="flashlight" aria-hidden="true"></div>
   <canvas id="fx" aria-hidden="true"></canvas>
   <div id="cur-dot" aria-hidden="true"></div>
   <div id="cur-ring" aria-hidden="true"></div>
-  <div id="wipe" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+  <div id="wipe" aria-hidden="true"><i></i><i></i><i></i><b class="mono" id="wipeLabel"></b></div>
 
   <!-- ============ HUD ============ -->
   <div class="hud-bar" aria-hidden="true"><span id="hp"></span></div>
@@ -51,7 +70,10 @@
     <span class="hud-path"><span class="dim">~/ahmad/</span><span id="hudFile">readme.md</span></span>
     <span class="hud-num" id="hudNum">00</span>
   </div>
+  <div class="pdate hud-pdate" aria-hidden="true"></div>
+  <div class="hud-score mono" aria-hidden="true"><span id="score">00000000</span><span class="hud-acc" id="acc">100.00%</span><span class="hud-mods" id="hudMods"></span></div>
   <div class="hud-combo" id="combo" aria-hidden="true"><span id="comboN">0</span><small>x</small></div>
+  <div class="hud-wpm mono" id="hudWpm" aria-hidden="true"><b id="hudWpmN">0</b> wpm</div>
   <nav class="rail" id="rail" aria-label="Sections"></nav>
   <button class="slash-btn mono" id="slashBtn" aria-label="Open quick navigation">/</button>
 
@@ -76,7 +98,7 @@
         <kbd>esc</kbd>
       </div>
       <ul class="pal-list" id="palList" role="listbox"></ul>
-      <div class="pal-foot mono"><span><kbd>↑</kbd><kbd>↓</kbd> move</span><span><kbd>enter</kbd> go</span><span><kbd>m</kbd> music</span><span><kbd>j</kbd>/<kbd>k</kbd> next/prev</span></div>
+      <div class="pal-foot mono"><span><kbd>↑</kbd><kbd>↓</kbd> move</span><span><kbd>enter</kbd> go</span><span><kbd>m</kbd> music</span><span><kbd>j</kbd>/<kbd>k</kbd> next/prev</span><span>type <b>mod</b> for mods</span></div>
     </div>
   </div>
 
@@ -86,8 +108,7 @@
   <main id="main">
 
     <!-- 00 HOME -->
-    <section id="home" class="hero" data-num="00" data-file="readme.md" data-title="home">
-      <div id="three" aria-hidden="true"></div>
+    <section id="home" class="hero" data-file="readme.md" data-title="home">
       <div class="hero-inner">
         <p class="hero-kicker mono" data-reveal><span class="dot-live"></span> <span id="heroKicker">hello, you found me</span></p>
         <h1 class="hero-name" id="heroName" data-reveal></h1>
@@ -106,7 +127,7 @@
     </section>
 
     <!-- 01 ABOUT -->
-    <section id="about" data-num="01" data-file="about.md" data-title="about me">
+    <section id="about" data-file="about.md" data-title="about me">
       <div class="grid-2">
         <div class="md" id="aboutText" data-reveal></div>
         <div data-reveal>
@@ -116,13 +137,13 @@
     </section>
 
     <!-- 02 NOW -->
-    <section id="now" data-num="02" data-file="now.md" data-title="right now">
+    <section id="now" data-file="now.md" data-title="right now">
       <p class="lead" data-reveal>what i'm spending my time on these days <span class="mono dim" id="nowUpdated"></span></p>
       <ul class="checklist" id="nowList"></ul>
     </section>
 
     <!-- 03 EVERYTHING -->
-    <section id="everything" data-num="03" data-file="everything.md" data-title="a bit of everything">
+    <section id="everything" data-file="everything.md" data-title="a bit of everything">
       <p class="lead" data-reveal>not one thing. a lot of things. drag the sphere.</p>
       <div class="grid-2 align-center">
         <div class="sphere-wrap" data-reveal><div class="sphere" id="sphere"></div></div>
@@ -131,7 +152,7 @@
     </section>
 
     <!-- 04 RESEARCH -->
-    <section id="research" data-num="04" data-file="research/" data-title="research">
+    <section id="research" data-file="research/" data-title="research">
       <div class="grid-2">
         <div class="md" data-reveal>
           <h3><span class="h-mark">###</span> what is information theory?</h3>
@@ -164,37 +185,60 @@
       <div id="papers"></div>
     </section>
 
+    <!-- TYPE TEST -->
+    <section id="type" data-file="type.test" data-title="type test">
+      <p class="lead" data-reveal>a tiny typing test. sounds on, click the box and start typing. <span class="mono dim">tab = restart</span></p>
+      <div class="tt panel" data-reveal>
+        <div class="tt-bar mono">
+          <div class="tt-modes" id="ttModes">
+            <button data-mode="time" data-n="15">15s</button><button data-mode="time" data-n="30" class="on">30s</button><button data-mode="time" data-n="60">60s</button>
+            <span class="sep">|</span>
+            <button data-mode="words" data-n="10">10w</button><button data-mode="words" data-n="25">25w</button>
+          </div>
+          <div class="tt-sound" id="ttSound"></div>
+        </div>
+        <div class="tt-live mono"><span id="ttTimer">30</span><span><b id="ttWpm">0</b> wpm</span><span><b id="ttAcc">100</b>% acc</span><span class="dim" id="ttPb"></span></div>
+        <div class="tt-box" id="ttBox">
+          <div class="tt-words" id="ttWords"></div>
+          <div class="tt-caret" id="ttCaret"></div>
+          <div class="tt-focus mono" id="ttFocus">click here or press any key to focus</div>
+          <input id="ttInput" class="tt-input" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Typing test input" />
+        </div>
+        <div class="tt-result" id="ttResult" hidden></div>
+      </div>
+    </section>
+
     <!-- 05 PROJECTS -->
-    <section id="projects" data-num="05" data-file="projects/" data-title="projects">
+    <section id="projects" data-file="projects/" data-title="projects">
       <p class="lead" data-reveal>pulled live from <a id="ghLink" href="#" target="_blank" rel="noopener">github</a>.</p>
       <div class="repo-grid" id="repos"><div class="loading mono">fetching repositories<span class="dots"></span></div></div>
     </section>
 
     <!-- 06 LEDGER -->
-    <section id="ledger" data-num="06" data-file="ledger/" data-title="the ledger">
+    <section id="ledger" data-file="ledger/" data-title="the ledger">
       <div id="ledgerBody"></div>
     </section>
 
     <!-- 07 ROADMAP -->
-    <section id="roadmap" data-num="07" data-file="roadmap.md" data-title="roadmap & plan">
+    <section id="roadmap" data-file="roadmap.md" data-title="roadmap & plan">
       <div class="legend mono" data-reveal><span><i class="st done"></i>done</span><span><i class="st doing"></i>in progress</span><span><i class="st blocked"></i>blocked / important</span><span><i class="st todo"></i>planned</span></div>
       <ol class="timeline" id="timeline"></ol>
     </section>
 
     <!-- 08 ACHIEVEMENTS -->
-    <section id="achievements" data-num="08" data-file="achievements/" data-title="achievements">
+    <section id="achievements" data-file="achievements/" data-title="achievements">
       <p class="lead" data-reveal>medals earned — and a few still locked.</p>
       <div class="medals" id="medals"></div>
     </section>
 
     <!-- 09 TOOLBOX -->
-    <section id="toolbox" data-num="09" data-file="toolbox.json" data-title="toolbox">
+    <section id="toolbox" data-file="toolbox.json" data-title="toolbox">
       <p class="lead" data-reveal>languages, tools, crafts — the things i reach for.</p>
       <pre class="code" id="toolboxCode" data-reveal></pre>
     </section>
 
     <!-- 10 LIBRARY -->
-    <section id="library" data-num="10" data-file="library.md" data-title="library">
+    <section id="library" data-file="library.md" data-title="library">
       <p class="lead" data-reveal>books, films, music and ideas that shaped how i think.</p>
       <div class="table-scroll" data-reveal>
         <table class="md-table" id="libTable"><thead><tr><th>kind</th><th>title</th><th>by</th><th>why it stuck</th></tr></thead><tbody></tbody></table>
@@ -202,7 +246,7 @@
     </section>
 
     <!-- 11 PRINCIPLES -->
-    <section id="principles" data-num="11" data-file="principles.md" data-title="principles">
+    <section id="principles" data-file="principles.md" data-title="principles">
       <blockquote class="big-quote" data-reveal>
         <p>“The fundamental problem of communication is that of reproducing at one point either exactly or approximately a message selected at another point.”</p>
         <cite class="mono">— Claude Shannon, <em>A Mathematical Theory of Communication</em>, 1948</cite>
@@ -211,7 +255,7 @@
     </section>
 
     <!-- 12 MEDIA -->
-    <section id="media" data-num="12" data-file="media/" data-title="media & sound">
+    <section id="media" data-file="media/" data-title="media & sound">
       <div class="grid-2">
         <div class="panel" data-reveal>
           <div class="panel-head mono"><span><span class="dot-rec"></span> youtube</span><a id="ytLink" class="dim" target="_blank" rel="noopener">open channel →</a></div>
@@ -234,7 +278,7 @@
     </section>
 
     <!-- 13 DISCORD -->
-    <section id="discord" data-num="13" data-file="discord/" data-title="discord">
+    <section id="discord" data-file="discord/" data-title="discord">
       <div class="grid-2">
         <div class="panel dc" id="dcCard" data-reveal></div>
         <div class="panel" id="dcServer" data-reveal></div>
@@ -242,19 +286,19 @@
     </section>
 
     <!-- 14 LOG -->
-    <section id="log" data-num="14" data-file="log/" data-title="log">
+    <section id="log" data-file="log/" data-title="log">
       <p class="lead mono dim" data-reveal>$ git log --oneline --reverse thoughts</p>
       <div class="log" id="logList"></div>
     </section>
 
     <!-- 15 GUESTBOOK -->
-    <section id="guestbook" data-num="15" data-file="guestbook.md" data-title="guestbook">
+    <section id="guestbook" data-file="guestbook.md" data-title="guestbook">
       <p class="lead" data-reveal>leave a note, a question, or just your name. signed with github.</p>
       <div class="panel" id="giscusBox" data-reveal></div>
     </section>
 
     <!-- 16 CONTACT -->
-    <section id="contact" data-num="16" data-file="contact.sh" data-title="get in touch">
+    <section id="contact" data-file="contact.sh" data-title="get in touch">
       <div class="contact">
         <form class="panel cform" id="cform" novalidate data-reveal>
           <div class="panel-head mono"><span>$ ./contact.sh</span><span class="dim" id="cfMode"></span></div>
@@ -307,6 +351,32 @@
             <ul class="socials" id="socials"></ul>
           </div>
         </aside>
+      </div>
+    </section>
+
+    <!-- RESULTS -->
+    <section id="results" data-file="results.log" data-title="your results">
+      <p class="lead" data-reveal>every click is a hit. here's how your visit is going.</p>
+      <div class="results panel" data-reveal>
+        <div class="res-grade"><div class="grade-big" id="resGrade">SS</div><span class="mono dim" id="resGradeNote">ranking</span></div>
+        <div class="res-main">
+          <div class="res-score" id="resScore">00000000</div>
+          <div class="res-grid mono">
+            <div><span class="j300">300</span><b id="r300">0</b></div>
+            <div><span class="j100">100</span><b id="r100">0</b></div>
+            <div><span class="j50">50</span><b id="r50">0</b></div>
+            <div><span class="jx">miss</span><b id="rMiss">0</b></div>
+          </div>
+          <div class="res-stats mono">
+            <div><span>accuracy</span><b id="rAcc">100.00%</b></div>
+            <div><span>max combo</span><b id="rCombo">0x</b></div>
+            <div><span>explored</span><b id="rExplored">0 / 0</b></div>
+            <div><span>time</span><b id="rTime">0:00</b></div>
+            <div><span>best wpm</span><b id="rWpm">—</b></div>
+            <div><span>mods</span><b id="rMods">none</b></div>
+          </div>
+          <div class="res-actions"><button class="btn" id="resRetry">retry</button><button class="btn btn-ghost mono" data-open-palette>mods → press <kbd>/</kbd> and type "mod"</button></div>
+        </div>
       </div>
     </section>
 
