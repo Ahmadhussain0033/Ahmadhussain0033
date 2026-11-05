@@ -2,7 +2,7 @@
   Profile README: this repo is Ahmadhussain0033/Ahmadhussain0033, so GitHub
   shows this file on the profile page. The same repo serves the site on Pages.
 
-  The cards (player / medals / hexoro / support) are generated from js/config.js
+  The cards (player / medals / now / support) are generated from js/config.js
   + live stats by tools/readme_cards.py and refreshed by the "readme stats"
   Action, so edit config.js and the README follows. Site docs live in SETUP.md.
 ──────────────────────────────────────────────────────────────── -->
@@ -21,7 +21,6 @@
   <a href="https://ahmadhussain0033.github.io/Ahmadhussain0033/"><img src="https://img.shields.io/badge/site-enter_the_signal-0a0a0b?style=for-the-badge&labelColor=f5f5f6&color=0a0a0b&logo=githubpages&logoColor=0a0a0b" alt="website"></a>
   <a href="https://discord.com"><img src="https://img.shields.io/badge/discord-nerdatronic-0a0a0b?style=for-the-badge&labelColor=4fe3ff&color=0a0a0b&logo=discord&logoColor=0a0a0b" alt="discord: nerdatronic"></a>
   <a href="https://ahmadhussain0033.github.io/Ledger/#donate"><img src="https://img.shields.io/badge/support-the_ledger-0a0a0b?style=for-the-badge&labelColor=6ee7a0&color=0a0a0b&logo=githubsponsors&logoColor=0a0a0b" alt="support: the ledger"></a>
-  <a href="https://github.com/Hexoro"><img src="https://img.shields.io/badge/org-hexoro-0a0a0b?style=for-the-badge&labelColor=d6d6da&color=0a0a0b&logo=github&logoColor=0a0a0b" alt="organization: Hexoro"></a>
   <a href="https://instagram.com/ahemod"><img src="https://img.shields.io/badge/insta-ahemod-0a0a0b?style=for-the-badge&labelColor=f5f5f6&color=0a0a0b&logo=instagram&logoColor=0a0a0b" alt="instagram: @ahemod"></a>
 </p>
 
@@ -32,10 +31,10 @@
   </a>
 </p>
 
-<!-- ─────────────── medals + hexoro ─────────────── -->
+<!-- ─────────────── medals + right now ─────────────── -->
 <p align="center">
   <a href="https://ahmadhussain0033.github.io/Ahmadhussain0033/#achievements"><img src="https://raw.githubusercontent.com/Ahmadhussain0033/Ahmadhussain0033/main/assets/readme/card-medals.svg" alt="medals" width="49.4%"></a>
-  <a href="https://ahmadhussain0033.github.io/Ahmadhussain0033/hexoro/"><img src="https://raw.githubusercontent.com/Ahmadhussain0033/Ahmadhussain0033/main/assets/readme/card-hexoro.svg" alt="Hexoro — my organization" width="49.4%"></a>
+  <a href="https://ahmadhussain0033.github.io/Ahmadhussain0033/#now"><img src="https://raw.githubusercontent.com/Ahmadhussain0033/Ahmadhussain0033/main/assets/readme/card-now.svg" alt="right now: infoverse, research, freelancing" width="49.4%"></a>
 </p>
 
 <!-- ─────────────── support ─────────────── -->
@@ -72,9 +71,16 @@
 ```python
 class Ahmad:
     handle    = "nerdatronic"
-    org       = "Hexoro"            # github.com/Hexoro
-    roles     = ["aspiring information theorist", "researcher", "a bit of everything"]
-    thinking  = ["information theory", "research"]
+    pronouns  = "he/him"
+    based_in  = "Karachi, Pakistan"
+    studying  = "BSCS @ IBA — mostly self-taught"
+    speaks    = ["English", "Urdu", "Arabic"]
+    company   = "Hexoro"            # founder
+    roles     = ["aspiring information theorist", "researcher", "infophile at heart", "freelancer"]
+    thinking  = ["algorithmic information theory", "compression", "learning itself"]
+    building  = "infoverse"
+    plays     = ["football", "chess", "arm wrestling", "gym"]
+    fuel      = ["energy drinks", "coffee"]
     listening = "STRUCT — super slowed + reverb"
     motto     = "Nothing matters so everything matters equally"
     site      = "https://ahmadhussain0033.github.io/Ahmadhussain0033/"
@@ -92,7 +98,8 @@ class Ahmad:
 | **instagram** | [@ahemod](https://instagram.com/ahemod) |
 | **site** | [ahmadhussain0033.github.io/Ahmadhussain0033](https://ahmadhussain0033.github.io/Ahmadhussain0033/#contact) |
 | **guestbook** | [sign the wall](https://ahmadhussain0033.github.io/Ahmadhussain0033/#guestbook) |
-| **hexoro** | [the Hexoro page](https://ahmadhussain0033.github.io/Ahmadhussain0033/hexoro/) |
+| **email** | [ahmad.hussain.a301@gmail.com](mailto:ahmad.hussain.a301@gmail.com) |
+| **hire me** | gigs, freelance, or long-term remote |
 | **support** | [the ledger](https://ahmadhussain0033.github.io/Ledger/#donate) |
 
 </details>

@@ -17,9 +17,9 @@ window.SITE = {
   roles: [
     "an aspiring information theorist",
     "a researcher",
-    "", // e.g. "a writer"
-    "", // e.g. "a musician"
-    "", // e.g. "a builder of things"
+    "an infophile at heart",
+    "a CS undergrad, mostly self-taught",
+    "a freelancer",
   ],
   motto: "Nothing matters so everything matters equally", // typed out under your name (unless tagline is set), on the about card + README
   tagline: "", // optional one-liner under your name; blank → the motto is shown there
@@ -27,55 +27,56 @@ window.SITE = {
   timezone: "Asia/Karachi", // IANA name — powers the live clock in contact
   // README level = your age. birthday "MM-DD" makes it level up on the day (+ an xp bar
   // through the year); without it the level stays at value.
-  age: { value: 19, asOf: "2026-11-05", birthday: "" },
-  pronouns: "",
+  age: { value: 19, asOf: "2026-11-05", birthday: "01-22" },
+  pronouns: "he/him",
 
   /* ---------- about.md ---------- */
   photo: "", // path or URL to a photo — blank uses your GitHub avatar
-  intro: "", // one bold line at the top of about, e.g. "i like finding the pattern in things"
+  intro: "Infophile at Heart", // one bold line at the top of about
   about: [
     // each string = one paragraph. supports **bold**, *italic*, `code`, [links](https://…)
-    "", // who you are
-    "", // what you do / study
-    "", // how you got here
-    "", // outside of all that
+    "i'm ahmad, 19, from karachi. i'm a BSCS undergrad at IBA (2nd year, 3rd semester), but most of what i know i taught myself.",
+    "i care about **algorithmic information theory**, compression, and learning itself. right now i'm building **infoverse**, a platform that judges theoretical and practical compressors and information theory, teaches and verifies it, and builds a collective database that doesn't rely on anyone. the whole process is transparent and everyone gets a fair shot. alongside it i'm doing my own research on compression frameworks and laws, and freelancing.",
+    "i got into information theory through a question i proposed to myself. it spiralled.",
+    "outside of that: football, the gym, arm wrestling, robotics and hardware, chess, and coding. fuelled by energy drinks and coffee. the anime and nerdy side of life shaped a lot of me: pokémon, persona, dbz, beyblade, real steel, pacific rim, and a lot of music and AMVs.",
   ],
   facts: [
     // quick facts table:  [label, value]
     ["based in", "Karachi, Pakistan 🇵🇰"],
     ["timezone", "PKT · UTC+5"],
     ["languages i speak", "English, Urdu, Arabic"],
-    ["currently", ""],
-    ["studying", ""],
-    ["my organization", "Hexoro"],
-    ["fuelled by", ""],
+    ["studying", "BSCS at IBA · 2nd year, 3rd semester · mostly self-taught"],
+    ["currently", "building infoverse · research · freelancing"],
+    ["my company", "Hexoro (founder)"],
+    ["good at", "football, gym, arm wrestling, robotics & hardware, chess"],
+    ["fuelled by", "energy drinks & coffee"],
     ["on repeat", "STRUCT — super slowed + reverb"],
-    ["fun fact", ""],
   ],
-  askMeAbout: ["information theory", "", "", ""], // chips: topics people can start a conversation with
+  askMeAbout: ["algorithmic information theory", "compression", "learning itself", "competitions", "games"],
   journey: [
     // a short timeline of you — { when, text }, oldest first
-    { when: "", text: "" },
-    { when: "", text: "" },
-    { when: "", text: "" },
-    { when: "2026", text: "launched this site" },
+    { when: "2007", text: "born in karachi" },
+    { when: "2025", text: "started BSCS at IBA" },
+    { when: "nov 2025", text: "found and disclosed a critical vulnerability in Compyle.ai (YC F25)" },
+    { when: "2026", text: "building infoverse · launched this site" },
   ],
 
   /* ---------- now.md (what you're doing these days) ---------- */
-  nowUpdated: "", // e.g. "Nov 2026"
+  nowUpdated: "Nov 2026",
   now: [
     // { text, status: "done" | "doing" | "blocked" }
-    { text: "", status: "doing" },
-    { text: "", status: "doing" },
-    { text: "", status: "doing" },
+    { text: "building infoverse: a transparent platform that judges compressors and information theory, teaches, verifies, and keeps a collective database", status: "doing" },
+    { text: "my own research on compression frameworks and laws", status: "doing" },
+    { text: "freelancing", status: "doing" },
+    { text: "getting information theory and compression out there", status: "doing" },
   ],
 
   /* ---------- everything.md (you're not just one thing) ---------- */
   interests: [
-    { group: "think", items: ["information theory", "research", "", ""] },
-    { group: "make", items: ["", "", ""] },
-    { group: "play", items: ["", "", ""] },
-    { group: "learn", items: ["", "", ""] },
+    { group: "think", items: ["information theory", "algorithmic information theory", "compression", "learning itself"] },
+    { group: "make", items: ["robotics", "hardware", "code", "photography"] },
+    { group: "play", items: ["football", "chess", "arm wrestling", "gym", "games"] },
+    { group: "love", items: ["anime", "light novels", "pokémon", "persona", "competitions"] },
   ],
 
   /* ---------- research/ → your own thoughts on information theory ---------- */
@@ -89,8 +90,8 @@ window.SITE = {
   /* ---------- research/ ---------- */
   research: [
     // { title, blurb, status: "proven" | "open" | "conjecture" | "idea", link }
-    { title: "", blurb: "", status: "open", link: "" },
-    { title: "", blurb: "", status: "idea", link: "" },
+    { title: "compression frameworks & laws", blurb: "my own research into frameworks and laws of compression.", status: "open", link: "" },
+    { title: "infoverse", blurb: "judging theoretical and practical compressors, with teaching, verification and a collective database that doesn't rely on anyone.", status: "open", link: "" },
   ],
   papers: [
     // { title, venue, year, link }
@@ -107,9 +108,11 @@ window.SITE = {
   //   repo     — "owner/name" → adds a source link + live ★ count (optional)
   //   featured — true → card spans full width at the top (optional)
   projects: [
-    { title: "", blurb: "", tags: [], status: "doing", year: "", link: "", repo: "", featured: true },
-    { title: "", blurb: "", tags: [], status: "done", year: "", link: "", repo: "" },
-    { title: "", blurb: "", tags: [], status: "done", year: "", link: "", repo: "" },
+    {
+      title: "infoverse",
+      blurb: "a platform that judges theoretical and practical compressors and information theory, teaches and verifies it, and builds a collective database that doesn't rely on anyone. the whole process is transparent and everyone gets a fair shot.",
+      tags: ["information theory", "compression", "platform"], status: "doing", year: "2026", link: "", repo: "", featured: true,
+    },
   ],
   github: "Ahmadhussain0033", // used for the footer + palette "open github"
 
@@ -118,7 +121,7 @@ window.SITE = {
     site: "https://ahmadhussain0033.github.io/Ledger/", // the live ledger — embedded + linked
     repo: "Ahmadhussain0033/Ledger",                     // source repo — shows recent commits
     about: "Every donation, expense and receipt in one place. What I'm working on, where the money goes, with receipts.",
-    why: "", // todo: in your words — what support goes toward / what you need it for
+    why: "support goes toward new tools i find, premium subscriptions (like for reading), API access, quality-of-life stuff, and a bunch of other things that help me while i work.",
     // buttons → sections of the ledger site
     links: [
       { label: "support me", hash: "donate", primary: true },
@@ -131,9 +134,18 @@ window.SITE = {
   /* ---------- roadmap.md ---------- */
   roadmap: [
     // { when, title, items: [{ text, status: "done" | "doing" | "blocked" | "todo" }] }
-    { when: "", title: "", items: [{ text: "", status: "done" }, { text: "", status: "doing" }] },
-    { when: "", title: "", items: [{ text: "", status: "todo" }] },
-    { when: "", title: "", items: [{ text: "", status: "todo" }] },
+    { when: "now", title: "building", items: [
+      { text: "infoverse", status: "doing" },
+      { text: "research on compression frameworks and laws", status: "doing" },
+      { text: "freelancing", status: "doing" },
+    ] },
+    { when: "2027", title: "next year", items: [
+      { text: "finish infoverse", status: "todo" },
+      { text: "publish at least one paper on my research", status: "todo" },
+      { text: "get better and align myself", status: "todo" },
+      { text: "get in touch with other information theory people", status: "todo" },
+    ] },
+    { when: "always", title: "the big one", items: [{ text: "get information theory and compression out there", status: "todo" }] },
   ],
 
   /* ---------- achievements/ ---------- */
@@ -159,18 +171,28 @@ window.SITE = {
 
   /* ---------- toolbox.json ---------- */
   toolbox: {
-    spoken: ["", ""],
-    tools: ["", "", ""],
-    creative: ["", ""],
-    other: [""],
+    spoken: ["English", "Urdu", "Arabic"],
+    tools: ["Obsidian", "Arch Linux", "Neovim"],
+    creative: ["Adobe", "photography"],
+    other: ["robotics & hardware"],
   },
 
   /* ---------- library/ (books, films, anything that shaped you) ---------- */
   library: [
-    // { kind: "book" | "film" | "album" | "paper" | "game", title, by, note }
-    { kind: "book", title: "", by: "", note: "" },
-    { kind: "film", title: "", by: "", note: "" },
-    { kind: "album", title: "", by: "", note: "" },
+    // { kind: "book" | "film" | "album" | "paper" | "game" | "anime" | …, title, by, note }
+    { kind: "game", title: "Pokémon", by: "", note: "genuinely huge for me" },
+    { kind: "game", title: "Persona", by: "Atlus", note: "" },
+    { kind: "game", title: "Minecraft", by: "", note: "" },
+    { kind: "game", title: "chess", by: "", note: "" },
+    { kind: "game", title: "PSP games", by: "", note: "" },
+    { kind: "film", title: "Real Steel", by: "", note: "" },
+    { kind: "film", title: "Pacific Rim", by: "", note: "" },
+    { kind: "film", title: "Rocky (the series)", by: "", note: "" },
+    { kind: "book", title: "How to Train Your Dragon (the books)", by: "Cressida Cowell", note: "" },
+    { kind: "book", title: "light novels", by: "", note: "" },
+    { kind: "anime", title: "Dragon Ball Z", by: "", note: "" },
+    { kind: "anime", title: "Beyblade", by: "", note: "" },
+    { kind: "music", title: "AMVs & music in general", by: "", note: "the anime and nerdy part of life shaped a lot of me" },
   ],
 
   /* ---------- media/ (YouTube) ---------- */
@@ -214,22 +236,22 @@ window.SITE = {
   },
 
   /* ---------- contact ---------- */
-  email: "", // the address shown + used by the copy button / mailto fallback
-  availability: { status: "green", text: "open to collaborations & conversations" }, // green | yellow | red
+  email: "ahmad.hussain.a301@gmail.com", // the address shown + used by the copy button / mailto fallback
+  availability: { status: "green", text: "open to gigs & long-term remote work" }, // green | yellow | red
   responseTime: "usually within 48h",
   bookingUrl: "", // e.g. a cal.com / calendly link → "book a call" button
   // best ways to reach you, in order — { via, note }
   reachMe: [
-    { via: "discord", note: "" }, // e.g. "fastest, i'm on most days"
-    { via: "email", note: "" }, // e.g. "for anything longer"
-    { via: "the form below", note: "" },
+    { via: "email", note: "ahmad.hussain.a301@gmail.com" },
+    { via: "discord", note: "nerdatronic" },
+    { via: "the form below", note: "lands in my inbox" },
   ],
-  openTo: ["", "", ""], // e.g. "research collaborations", "talks / podcasts", "freelance"
-  notOpenTo: [""], // optional, e.g. "unpaid spec work"
+  openTo: ["gigs / freelance work", "long-term remote work", "anyone who wants to help: you're welcome"],
+  notOpenTo: [],
   contactFaq: [
     // { q, a }
-    { q: "", a: "" },
-    { q: "", a: "" },
+    { q: "can i hire you?", a: "yes. gigs, freelance, or something long-term and remote. email me with what you need." },
+    { q: "i want to help with infoverse or your research", a: "you're welcome. reach out and tell me what you'd like to do." },
   ],
   // https://web3forms.com → free key, messages arrive in your inbox.
   // leave blank → the form falls back to opening the visitor's email app.
@@ -237,7 +259,6 @@ window.SITE = {
   socials: [
     // { label, url } — add / remove freely
     { label: "github", url: "https://github.com/Ahmadhussain0033" },
-    { label: "hexoro (my org)", url: "https://github.com/Hexoro" },
     { label: "support (ledger)", url: "https://ahmadhussain0033.github.io/Ledger/" },
     { label: "youtube", url: "" },
     { label: "discord", url: "https://discord.com" },
@@ -250,41 +271,8 @@ window.SITE = {
     { label: "spotify", url: "" },
   ],
 
-  /* ---------- hexoro — your organization (section here + its own page at /hexoro/) ---------- */
-  hexoro: {
-    name: "Hexoro",
-    tagline: "", // one line: what Hexoro is
-    github: "Hexoro", // github.com/Hexoro — public repos show up live
-    website: "",
-    email: "", // business contact
-    founded: "",
-    location: "",
-    role: "", // your role, e.g. "founder"
-    about: ["", ""], // paragraphs — supports **bold**, *italic*, `code`, [links](https://…)
-    // what Hexoro does — { title, blurb }
-    focus: [
-      { title: "", blurb: "" },
-      { title: "", blurb: "" },
-      { title: "", blurb: "" },
-    ],
-    // products / projects — { name, blurb, status: "done" | "doing" | "idea", link }
-    products: [
-      { name: "", blurb: "", status: "doing", link: "" },
-      { name: "", blurb: "", status: "idea", link: "" },
-    ],
-    // team — { name, role, link }
-    team: [
-      { name: "Ahmad Hussain", role: "", link: "https://ahmadhussain0033.github.io/Ahmadhussain0033/" },
-      { name: "", role: "", link: "" },
-    ],
-    values: ["", "", ""],
-    // milestones — { when, text }
-    timeline: [
-      { when: "", text: "" },
-      { when: "", text: "" },
-    ],
-    joinText: "", // e.g. "we're looking for …" — leave blank to hide the join block
-  },
+  /* ---------- hexoro — your company (only shown as a fact + a small tag) ---------- */
+  hexoro: { name: "Hexoro", role: "founder" },
 
   /* ---------- music ---------- */
   music: {

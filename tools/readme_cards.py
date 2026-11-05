@@ -3,13 +3,13 @@
 Generates the animated cards in the middle of README.md from js/config.js + live stats:
   assets/readme/card-player.svg   osu!-style profile card (avatar, rank, stats, level bar)
   assets/readme/card-medals.svg   achievements as medals (locked ones included)
-  assets/readme/card-hexoro.svg   Hexoro, the organization
+  assets/readme/card-now.svg      what you're on right now (config.now + next-year goals)
   assets/readme/card-support.svg  the ledger / support strip
 
 Data:
   js/config.js               read through node (it's plain JS)
   assets/readme/stats.json   written by tools/stats_svg.py (contributions, streaks, repos)
-  GitHub API (optional)      avatar + Hexoro org details; works without a token, better with one
+  GitHub (optional)          your avatar; the cards still render without it
 
 usage: pip install fonttools && python3 tools/readme_cards.py
 Runs in .github/workflows/readme-stats.yml, so editing config.js updates the README by itself.
@@ -227,7 +227,7 @@ def player_card(t, C, st, avatar):
         p, _ = t.path(t.monob, org.upper(), 12, x0 + hw + 27 + ow / 2, 145, BG, 1.5, "middle")
         parts.append(p)
     if roles:
-        line, s = t.fit(t.mono, "  ·  ".join(roles), 15, 600)
+        line, s = t.fit(t.mono, "  ·  ".join(roles[:3]), 15, 600)
         p, _ = t.path(t.mono, line, s, x0, 180, FG)
         parts.append(p)
     if has(C.get("motto")):
@@ -257,7 +257,7 @@ def player_card(t, C, st, avatar):
     parts.append(f'<rect x="{bx}" y="{by}" width="{bw}" height="8" rx="4" fill="{LINE2}"/>')
     if prog is not None:
         parts.append(f'<rect x="{bx}" y="{by}" width="0" height="8" rx="4" fill="{ACC}"><animate attributeName="width" values="0;{bw * prog:.1f}" dur="1.6s" fill="freeze" calcMode="spline" keySplines=".2 .8 .2 1"/></rect>')
-        txt = f"LV.{lvl}  {round(prog * 100)}% to LV.{lvl + 1}  ·  level = age  ·  levels up every birthday  ·  {total} contributions all time"
+        txt = f"LV.{lvl}  {round(prog * 100)}% to LV.{lvl + 1}  ·  levels up every birthday  ·  {total} contributions"
     else:
         # no birthday set: a scanning sweep instead of a fake progress number
         parts.append(f'<rect x="{bx}" y="{by}" width="120" height="8" rx="4" fill="{ACC}" fill-opacity=".8"><animate attributeName="x" values="{bx};{bx + bw - 120};{bx}" dur="5s" repeatCount="indefinite" calcMode="spline" keySplines=".4 0 .6 1;.4 0 .6 1"/></rect>')
@@ -331,73 +331,47 @@ def medals_card(t, C):
     return frame(W, H, "\n".join(parts), f"medals: {unlocked} of {len(ach)} unlocked")
 
 
-def hexoro_card(t, C, org):
+def now_card(t, C):
+    """what you're on right now: config.now (+ the next-year goals from config.roadmap)"""
     W, H = 600, 330
-    Hx = C.get("hexoro") or {}
-    name = (Hx.get("name") or "Hexoro").upper()
     parts = []
-    # faint hex lattice
-    for r in range(4):
-        for c in range(6):
-            x, y = 330 + c * 52 + (26 if r % 2 else 0), 40 + r * 45
-            parts.append(f'<polygon points="{hexagon(x, y, 26)}" fill="none" stroke="{HI}" stroke-opacity=".04"/>')
-    # logo (cube spokes turn in 120° steps)
-    lx, ly = 112, 150
-    parts.append(f'<polygon points="{hexagon(lx + 8, ly + 8, 72)}" fill="{ACC}" fill-opacity=".35"/>')
-    parts.append(f'<polygon points="{hexagon(lx, ly, 72)}" fill="{BG}" stroke="{HI}" stroke-width="8" stroke-linejoin="round"/>')
-    spokes = "".join(f'<line x1="{lx}" y1="{ly}" x2="{lx + 46 * math.cos(math.radians(a)):.1f}" y2="{ly + 46 * math.sin(math.radians(a)):.1f}" stroke="{ACC}" stroke-width="8" stroke-linecap="round"/>' for a in (-90, 30, 150))
-    parts.append(f'<g>{spokes}<animateTransform attributeName="transform" type="rotate" values="0 {lx} {ly};0 {lx} {ly};120 {lx} {ly};120 {lx} {ly}" keyTimes="0;.7;.85;1" dur="3.2s" repeatCount="indefinite" calcMode="spline" keySplines="0 0 1 1;.6 0 .2 1;0 0 1 1"/></g>')
-    parts.append(f'<circle cx="{lx}" cy="{ly}" r="10" fill="{HI}"/>')
-    # text
-    x0 = 226
-    p, _ = t.path(t.monob, "MY ORGANIZATION", 11, x0, 92, ACC, 2)
+    p, tw = t.path(t.disp, "RIGHT NOW", 28, 28, 52, HI, 1)
     parts.append(p)
-    nm, s = t.fit(t.disp, name, 54, 340, 1)
-    p, _ = t.path(t.disp, nm, s, x0 + 4, 148, ACC, 1, extra=' fill-opacity=".85"')
-    parts.append(p)
-    p, _ = t.path(t.disp, nm, s, x0, 144, HI, 1)
-    parts.append(p)
-    tag = Hx.get("tagline") or (org or {}).get("description") or ""
-    y = 178
-    if has(tag):
-        for ln in wrap(tag, 40)[:2]:
-            p, _ = t.path(t.semi, ln, 15, x0, y, FG)
+    if has(C.get("nowUpdated")):
+        p, _ = t.path(t.mono, "updated " + C["nowUpdated"].lower(), 12, 28 + tw + 14, 50, DIM)
+        parts.append(p)
+    parts.append(f'<rect x="28" y="64" width="{tw}" height="5" fill="{ACC}" transform="skewX(-20)"/>')
+    dot = {"done": GREEN, "doing": YELLOW, "blocked": RED}
+    y = 102
+    items = [n for n in (C.get("now") or []) if has(n.get("text"))][:4]
+    for k, n in enumerate(items):
+        head, _, rest = str(n["text"]).partition(":")
+        col = dot.get(n.get("status"), MUTE)
+        parts.append(f'<circle cx="38" cy="{y - 5}" r="5" fill="{col}"><animate attributeName="opacity" values="1;.35;1" dur="2.4s" begin="{k * 0.3:.1f}s" repeatCount="indefinite"/></circle>')
+        line, s = t.fit(t.semi, head.strip(), 17, 520)
+        p, _ = t.path(t.semi, line, s, 54, y, HI)
+        parts.append(p)
+        y += 20
+        for ln in wrap(rest.strip(), 62)[:2]:
+            p, _ = t.path(t.mono, ln, 11, 54, y, DIM)
             parts.append(p)
-            y += 20
-    meta = []
-    if has(Hx.get("founded")):
-        meta.append("est. " + str(Hx["founded"]))
-    elif org and org.get("created_at"):
-        meta.append("on github since " + org["created_at"][:4])
-    if Hx.get("github"):
-        meta.append("github.com/" + Hx["github"])
-    if meta:
-        p, _ = t.path(t.mono, "  ·  ".join(meta), 11, x0, y + 6, DIM)
+            y += 16
+        y += 12
+    nxt = [i.get("text") for ph in (C.get("roadmap") or []) if str(ph.get("title", "")).lower() == "next year" for i in (ph.get("items") or []) if has(i.get("text"))]
+    if nxt and y < H - 30:
+        line, s = t.fit(t.mono, "NEXT  →  " + "  ·  ".join(nxt[:2]), 11, 540)
+        p, _ = t.path(t.mono, line, s, 28, H - 26, ACC)
         parts.append(p)
-        y += 22
-    focus = [f.get("title") for f in (Hx.get("focus") or []) if has(f.get("title"))][:3]
-    fx = x0
-    for f in focus:
-        w = t.width(t.mono, f, 11)
-        parts.append(f'<rect x="{fx}" y="{y + 4}" width="{w + 20}" height="24" rx="12" fill="none" stroke="{LINE2}"/>')
-        p, _ = t.path(t.mono, f, 11, fx + 10, y + 20, FG)
-        parts.append(p)
-        fx += w + 28
-    # cta
-    cw = t.width(t.monob, "OPEN THE HEXORO PAGE  →", 11, 1)
-    parts.append(f'<g transform="translate(28 268) skewX(-10)"><rect width="{cw + 28}" height="34" rx="6" fill="{HI}"/></g>')
-    p, _ = t.path(t.monob, "OPEN THE HEXORO PAGE  →", 11, 42 + 3, 289, BG, 1)
-    parts.append(p)
-    return frame(W, H, "\n".join(parts), f"{Hx.get('name') or 'Hexoro'} — my organization")
+    return frame(W, H, "\n".join(parts), "right now: " + "; ".join(i["text"] for i in items))
 
 
 def support_card(t, C):
-    W, H = 1200, 150
+    W, H = 1200, 172
     L = C.get("ledger") or {}
     parts = []
     parts.append(f'<polygon points="0,0 230,0 190,{H} 0,{H}" fill="{GREEN}" fill-opacity=".08"/>')
     # heart that beats
-    hx, hy = 96, 75
+    hx, hy = 96, 86
     heart = f"M{hx} {hy + 26} C{hx - 46} {hy - 4} {hx - 26} {hy - 40} {hx} {hy - 18} C{hx + 26} {hy - 40} {hx + 46} {hy - 4} {hx} {hy + 26} Z"
     parts.append(f'<g transform="translate({hx} {hy})"><g><path d="{heart}" transform="translate({-hx} {-hy})" fill="{GREEN}"/>'
                  f'<animateTransform attributeName="transform" type="scale" values="1;1.12;1;1.06;1" dur="1.4s" repeatCount="indefinite"/></g></g>')
@@ -407,19 +381,22 @@ def support_card(t, C):
     p, _ = t.path(t.disp, "BACK WHAT I'M BUILDING", 34, x0, 84, HI, 0.5)
     parts.append(p)
     about = L.get("why") or L.get("about") or ""
+    y = 112
     if has(about):
-        line, s = t.fit(t.mono, about, 13, 640)
-        p, _ = t.path(t.mono, line, s, x0, 112, DIM)
-        parts.append(p)
+        for ln in wrap(about, 86)[:2]:
+            line, s = t.fit(t.mono, ln, 12.5, 680)
+            p, _ = t.path(t.mono, line, s, x0, y, DIM)
+            parts.append(p)
+            y += 18
     links = "  ·  ".join(l.get("label", "") for l in (L.get("links") or []))
     if links:
         line, s = t.fit(t.mono, links, 11, 640)
-        p, _ = t.path(t.mono, line, s, x0, 132, MUTE)
+        p, _ = t.path(t.mono, line, s, x0, y + 8, MUTE)
         parts.append(p)
     cw = t.width(t.monob, "OPEN THE LEDGER  →", 13, 1)
     bx = W - 60 - cw - 32
-    parts.append(f'<g transform="translate({bx} 52) skewX(-10)"><rect width="{cw + 32}" height="46" rx="8" fill="{GREEN}"/></g>')
-    p, _ = t.path(t.monob, "OPEN THE LEDGER  →", 13, bx + 20, 80, BG, 1)
+    parts.append(f'<g transform="translate({bx} 63) skewX(-10)"><rect width="{cw + 32}" height="46" rx="8" fill="{GREEN}"/></g>')
+    p, _ = t.path(t.monob, "OPEN THE LEDGER  →", 13, bx + 20, 91, BG, 1)
     parts.append(p)
     return frame(W, H, "\n".join(parts), "support: open the ledger — every donation, expense and receipt in one place")
 
@@ -438,13 +415,11 @@ def main():
     if raw:
         mime = "image/png" if raw[:4] == b"\x89PNG" else "image/jpeg"
         avatar = f"data:{mime};base64," + base64.b64encode(raw).decode()
-    org_login = (C.get("hexoro") or {}).get("github")
-    org = http(f"https://api.github.com/orgs/{org_login}") if org_login else None
     t = T()
     for name, svg in (
         ("card-player.svg", player_card(t, C, st, avatar)),
         ("card-medals.svg", medals_card(t, C)),
-        ("card-hexoro.svg", hexoro_card(t, C, org)),
+        ("card-now.svg", now_card(t, C)),
         ("card-support.svg", support_card(t, C)),
     ):
         with open(os.path.join(OUT, name), "w", encoding="utf-8") as fh:

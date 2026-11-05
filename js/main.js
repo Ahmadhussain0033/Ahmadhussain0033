@@ -875,10 +875,7 @@
     const intro = has(C.intro) ? `<p class="about-intro">${mdInline(C.intro)}</p>` : C.showTodos !== false ? `<p class="about-intro">${todo("intro — one bold line about you")}</p>` : "";
     const todoParas = (C.about || []).length ? (C.about || []).map((p, i) => (has(p) ? `<p>${mdInline(p)}</p>` : C.showTodos !== false ? `<p>${todo(["who you are", "what you do / study", "how you got here", "outside of all that"][i] || "another paragraph")}</p>` : "")).join("") : "";
     $("#aboutText").innerHTML = intro + (paras.length || C.showTodos !== false ? todoParas : `<p>${todo("about — write a few paragraphs in config.js → about")}</p>`);
-    const H = C.hexoro || {};
-    $("#facts tbody").innerHTML = (C.facts || [])
-      .map(([k, v]) => `<tr><td>${esc(k)}</td><td>${has(H.name) && v === H.name ? `<a href="#hexoro" data-nav>${esc(v)}</a>` : or(v)}</td></tr>`)
-      .join("");
+    $("#facts tbody").innerHTML = (C.facts || []).map(([k, v]) => `<tr><td>${esc(k)}</td><td>${or(v)}</td></tr>`).join("");
     const ask = (C.askMeAbout || []);
     $("#askMe").innerHTML = ask.map((t) => (has(t) ? `<a class="ask" href="#contact" data-nav data-ask="${esc(t)}">${esc(t)}</a>` : C.showTodos !== false ? `<span class="ask ask-todo">${todo("topic")}</span>` : "")).join("") || todo("askMeAbout");
     // clicking a topic jumps to the form with it pre-written
@@ -1042,39 +1039,6 @@
     });
   })();
 
-  // hexoro — organization card (the full company page lives at /hexoro/)
-  (async () => {
-    const H = C.hexoro || {};
-    const el = $("#hexoroCard");
-    if (!el) return;
-    const name = H.name || "Hexoro", org = H.github || "";
-    const focus = (H.focus || []).map((f) => f.title).filter(has);
-    el.innerHTML = `
-      <div class="hx-card-l">
-        <img class="hx-card-logo" src="assets/hexoro/logo.svg" alt="${esc(name)} logo" width="120" height="120">
-        <div>
-          <div class="hx-card-name">${esc(name)}</div>
-          <div class="mono dim small">${has(H.role) ? esc(H.role) + " · " : ""}${esc(C.name || "")}</div>
-        </div>
-      </div>
-      <div class="hx-card-r">
-        <p class="lead" id="hxCardTag">${has(H.tagline) ? esc(H.tagline) : todo("hexoro.tagline — one line: what Hexoro is")}</p>
-        ${has((H.about || [])[0]) ? `<p class="dim">${mdInline(H.about[0])}</p>` : ""}
-        <div class="ask-chips">${focus.length ? focus.map((f) => `<span class="ask">${esc(f)}</span>`).join("") : todo("hexoro.focus — what Hexoro does")}</div>
-        <div class="hx-card-stats mono" id="hxCardStats"></div>
-        <div class="dc-actions">
-          <a class="btn btn-hi" href="hexoro/">open the ${esc(name)} page →</a>
-          ${org ? `<a class="btn" href="https://github.com/${esc(org)}" target="_blank" rel="noopener">github.com/${esc(org)} ↗</a>` : ""}
-        </div>
-      </div>`;
-    if (!org) return;
-    try {
-      const o = await gh(`/orgs/${encodeURIComponent(org)}`);
-      if (!has(H.tagline) && has(o.description)) $("#hxCardTag").textContent = o.description;
-      $("#hxCardStats").innerHTML = `<span>${o.public_repos ?? 0} public repos</span><span>${o.followers ?? 0} ${o.followers === 1 ? "follower" : "followers"}</span>${o.created_at ? `<span>on github since ${new Date(o.created_at).getFullYear()}</span>` : ""}`;
-    } catch { /* card still works without live data */ }
-  })();
-
   // embedded pages are mounted only while near the viewport and taken out when far away:
   // a live site in an iframe keeps animating (and costing frames) even when scrolled off
   const frameIO = new IntersectionObserver((ents) => ents.forEach((e) => {
@@ -1204,7 +1168,11 @@
   (() => {
     const list = C.library || [];
     $("#libTable tbody").innerHTML = list.length
-      ? list.map((x) => `<tr><td>${or(x.kind)}</td><td>${or(x.title)}</td><td>${or(x.by)}</td><td>${or(x.note)}</td></tr>`).join("")
+      ? list.map((x) => {
+          // once a row has a title, a blank "by" / "note" is just left empty (not a todo)
+          const opt = (v) => (has(v) ? esc(v) : has(x.title) ? '<span class="dim">—</span>' : todo());
+          return `<tr><td>${or(x.kind)}</td><td>${or(x.title)}</td><td>${opt(x.by)}</td><td>${opt(x.note)}</td></tr>`;
+        }).join("")
       : `<tr><td colspan="4">${todo("add to config.js → library")}</td></tr>`;
   })();
 
@@ -1585,13 +1553,11 @@
     else lt.innerHTML = todo("timezone");
 
     // quick contact cards
-    const H = C.hexoro || {};
     const dcUser = C.discord?.username;
     const quick = [
       has(dcUser) && { k: "discord", v: "@" + dcUser, act: `<button class="btn btn-hi" data-copy="${esc(dcUser)}" data-copy-label="discord username">copy</button>`, note: "usually the fastest" },
       { k: "email", v: has(C.email) ? C.email : "", act: has(C.email) ? `<button class="btn btn-hi" data-copy="${esc(C.email)}" data-copy-label="email">copy</button><a class="btn" href="mailto:${esc(C.email)}">write ↗</a>` : "", note: "for anything longer" },
       { k: "book a call", v: safeUrl(C.bookingUrl) ? "pick a time that works" : "", act: safeUrl(C.bookingUrl) ? `<a class="btn btn-hi" href="${esc(safeUrl(C.bookingUrl))}" target="_blank" rel="noopener">book ↗</a>` : "", note: "15–30 min, video or voice" },
-      has(H.name) && { k: H.name, v: "business & partnerships", act: `<a class="btn btn-hi" href="hexoro/#contact">contact ${esc(H.name)} →</a>`, note: "my organization" },
       safeUrl((C.ledger || {}).site) && { k: "support", v: "back what i'm working on", act: `<a class="btn btn-hi" href="${esc(safeUrl(C.ledger.site) + "#donate")}" target="_blank" rel="noopener">support ♥</a>`, note: "every expense is public" },
     ].filter(Boolean);
     $("#quickContact").innerHTML = quick

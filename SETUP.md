@@ -15,7 +15,6 @@ All personal content lives in **`js/config.js`**.
 | Want to… | Edit in `config.js` |
 |---|---|
 | change bio, facts, now-list, interests | `intro`, `about`, `facts`, `askMeAbout`, `journey`, `photo` (blank = your GitHub avatar), `now`, `interests` |
-| Hexoro (section + its own page at `/hexoro/`) | `hexoro` — tagline, about, focus, products, team, values, timeline, email. Blanks are filled from the public [github.com/Hexoro](https://github.com/Hexoro) org where it has the info (description, website, email, public repos) |
 | your thoughts on information theory (research section + README `~/thoughts.md`) | `thoughtsTitle`, `thoughts` |
 | ledger / support section | `ledger.site`, `ledger.why`, `ledger.links` (buttons that jump to sections of the ledger site) |
 | your project portfolio | `projects` (curated; nothing is pulled automatically. `featured: true` makes a card full-width) |
@@ -68,11 +67,10 @@ The site targets your display's full refresh rate (60, 120, 144 Hz and up). Pres
 
 This repo is named `Ahmadhussain0033/Ahmadhussain0033`, so GitHub shows `README.md` on your profile page. The same repo also serves the site:
 - site: https://ahmadhussain0033.github.io/Ahmadhussain0033/
-- Hexoro page: https://ahmadhussain0033.github.io/Ahmadhussain0033/hexoro/
 
 The old `/About-Me/` address stopped working when the repo was renamed (GitHub Pages doesn't redirect), so share the new one.
 
-The middle of the README is four generated cards: player, medals, Hexoro and support. `tools/readme_cards.py` draws them from `js/config.js` plus live stats. The **readme stats** Action reruns it every 6 hours and whenever `config.js` changes, so your README follows the site.
+The middle of the README is four generated cards: player, medals, now and support. `tools/readme_cards.py` draws them from `js/config.js` plus live stats. The **readme stats** Action reruns it every 6 hours and whenever `config.js` changes, so your README follows the site.
 - The player card's level is √(all-time contributions), shown with its progress to the next level.
 - "Best rank" is your highest unlocked medal.
 - To run it locally: `pip install fonttools`, then `python3 tools/readme_cards.py`. It needs node.
@@ -106,8 +104,6 @@ css/style.css       all styling
 js/config.js        ← your content
 js/main.js          cursor, fx, audio, palette, renderers, live data
 js/scene.js         three.js space: nebula, stars, hero, gates, warp
-js/hexoro.js        the Hexoro company page
-hexoro/             Hexoro page (uses the same css, config and space scene)
 vendor/             three.js r160 (vendored, no CDN dependency)
 assets/audio/       site soundtrack
 assets/readme/      animated SVGs for the profile README
