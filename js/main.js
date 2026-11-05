@@ -1157,8 +1157,18 @@
     keys.forEach((k, ki) => {
       const vals = tb[k] || [];
       const empty = vals.some((v) => !has(v));
-      const arr = vals.map((v) => `<span class="tk-s">"${esc(v)}"</span>`).join('<span class="tk-p">, </span>');
-      lines.push(`  <span class="tk-k">"${esc(k)}"</span><span class="tk-p">: [</span>${arr}<span class="tk-p">]${ki < keys.length - 1 ? "," : ""}</span>${empty && C.showTodos !== false ? `  <span class="tk-c">// todo: fill in</span>` : ""}`);
+      const str = (v) => `<span class="tk-s">"${esc(v)}"</span>`;
+      const sep = '<span class="tk-p">, </span>';
+      const end = `<span class="tk-p">]${ki < keys.length - 1 ? "," : ""}</span>${empty && C.showTodos !== false ? `  <span class="tk-c">// todo: fill in</span>` : ""}`;
+      const head = `  <span class="tk-k">"${esc(k)}"</span><span class="tk-p">: [</span>`;
+      if (vals.length <= 6) { lines.push(head + vals.map(str).join(sep) + end); return; }
+      // long lists wrap like a formatter would: one row of up to 5 per line
+      lines.push(head);
+      for (let i = 0; i < vals.length; i += 5) {
+        const last = i + 5 >= vals.length;
+        lines.push(`    ${vals.slice(i, i + 5).map(str).join(sep)}${last ? "" : '<span class="tk-p">,</span>'}`);
+      }
+      lines.push("  " + end);
     });
     lines.push(`<span class="tk-p">}</span>`);
     $("#toolboxCode").innerHTML = lines.map((l) => `<span class="ln">${l}</span>`).join("");

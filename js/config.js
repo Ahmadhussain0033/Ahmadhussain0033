@@ -113,6 +113,26 @@ window.SITE = {
       blurb: "a platform that judges theoretical and practical compressors and information theory, teaches and verifies it, and builds a collective database that doesn't rely on anyone. the whole process is transparent and everyone gets a fair shot.",
       tags: ["information theory", "compression", "platform"], status: "doing", year: "2026", link: "", repo: "", featured: true,
     },
+    {
+      title: "compression research",
+      blurb: "papers and work about compression, and learning as a whole.",
+      tags: ["research", "compression", "learning"], status: "doing", year: "", link: "", repo: "",
+    },
+    {
+      title: "RX0",
+      blurb: "my own compressor.",
+      tags: ["compression"], status: "doing", year: "", link: "", repo: "",
+    },
+    {
+      title: "Arky",
+      blurb: "the pet hexapod i'm making.",
+      tags: ["robotics", "hardware"], status: "doing", year: "", link: "", repo: "",
+    },
+    {
+      title: "untitled energy device",
+      blurb: "my own energy device: trying to perfect a closed Stirling engine. no name yet.",
+      tags: ["hardware", "energy"], status: "doing", year: "", link: "", repo: "",
+    },
   ],
   github: "Ahmadhussain0033", // used for the footer + palette "open github"
 
@@ -172,7 +192,7 @@ window.SITE = {
   /* ---------- toolbox.json ---------- */
   toolbox: {
     spoken: ["English", "Urdu", "Arabic"],
-    tools: ["Obsidian", "Arch Linux", "Neovim"],
+    tools: ["Obsidian", "Arch Linux", "Neovim", "VS Code", "Python", "C++", "Verilog", "Lean", "Assembly", "HTML", "CSS", "JS", "Spotify", "OBS"],
     creative: ["Adobe", "photography"],
     other: ["robotics & hardware"],
   },
