@@ -15,6 +15,7 @@ All personal content lives in **`js/config.js`**.
 | Want to… | Edit in `config.js` |
 |---|---|
 | change bio, facts, now-list, interests | `about`, `facts`, `now`, `interests` |
+| your project portfolio | `projects` (curated; nothing is pulled automatically. `featured: true` makes a card full-width) |
 | add research / papers | `research`, `papers` |
 | update roadmap / medals | `roadmap`, `achievements` (an empty `title` shows as a locked medal) |
 | feature YouTube | `youtube.channelId` (starts with `UC…`) or `youtube.featured` (a video id) |
@@ -32,7 +33,6 @@ All personal content lives in **`js/config.js`**.
 | `m` | play / pause music |
 | `j` / `k` | next / previous section |
 | `esc` | close menu |
-| `tab` | restart the type test |
 
 ## osu-style extras
 
@@ -48,7 +48,7 @@ All personal content lives in **`js/config.js`**.
   - **SS**: all 300s
   - **S**: over 90% 300s, under 1% 50s, no misses
   - **A, B, C, D**: lower bands
-- **Typing sounds.** These are synthesized live, with no sample files. Pick `click`, `thock`, `typewriter`, `pop`, `piano` or `off` in the type test bar or from the `/` menu.
+- **Typing feel.** In every text box: a smooth gliding cyan caret, synthesized key sounds (no sample files), cyan letter pops, and a live WPM counter. Pick the sound (`click`, `thock`, `typewriter`, `pop`, `piano` or `off`) under the contact form or from the `/` menu.
 
 ## Profile README
 
@@ -89,3 +89,11 @@ Third-party services the site uses, all called from the browser:
 - Web3Forms (contact form)
 - giscus (guestbook)
 - Google Fonts
+
+## README stats
+
+The streak card and contribution graph are generated in this repo, not by third-party services:
+- `.github/workflows/readme-stats.yml` runs `tools/stats_svg.py` every 6 hours (and on demand from the Actions tab).
+- It reads your contribution calendar through GitHub's API using the repo's built-in token, and commits fresh `assets/readme/streak.svg` and `contrib.svg`.
+
+If they still say "syncing", open **Actions → readme stats → Run workflow**.

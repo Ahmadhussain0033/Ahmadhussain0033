@@ -68,10 +68,22 @@ window.SITE = {
     // { title, venue, year, link }
   ],
 
-  /* ---------- projects/ (pulled live from GitHub) ---------- */
-  github: "Ahmadhussain0033",
-  projectsLimit: 6,
-  hideRepos: [], // repo names to hide, e.g. ["About-Me"]
+  /* ---------- projects/ — YOUR curated portfolio (nothing is auto-pulled) ---------- */
+  // Only what you list here shows up, in this order. Copy a block to add more.
+  //   title    — project name
+  //   blurb    — 1–2 sentences: what it is / why it matters
+  //   tags     — short labels, e.g. ["python", "compression", "research"]
+  //   status   — "done" | "doing" | "blocked" | "idea"   (green / yellow / red / grey)
+  //   year     — e.g. "2026"
+  //   link     — live demo / paper / video (optional)
+  //   repo     — "owner/name" → adds a source link + live ★ count (optional)
+  //   featured — true → card spans full width at the top (optional)
+  projects: [
+    { title: "", blurb: "", tags: [], status: "doing", year: "", link: "", repo: "", featured: true },
+    { title: "", blurb: "", tags: [], status: "done", year: "", link: "", repo: "" },
+    { title: "", blurb: "", tags: [], status: "done", year: "", link: "", repo: "" },
+  ],
+  github: "Ahmadhussain0033", // used for the footer + palette "open github"
 
   /* ---------- ledger/ (one repo, shown as a live dashboard) ---------- */
   ledger: {
@@ -90,7 +102,15 @@ window.SITE = {
   /* ---------- achievements/ ---------- */
   achievements: [
     // grade: "SS" | "S" | "A" | "B" — empty title shows as a LOCKED medal
-    { grade: "S", title: "", detail: "", date: "", link: "" },
+    // example ↓ — copy this shape for new ones. link can be a URL or a file in the repo.
+    {
+      grade: "SS",
+      title: "Critical vulnerability · Compyle.ai",
+      detail: "Found and responsibly disclosed a critical credit-system bypass in Compyle.ai (YC F25), an AI coding agent. Fully remediated; formally acknowledged by the founder & CTO.",
+      date: "Nov 2025",
+      link: "assets/docs/compyle-security-acknowledgment-2025.pdf",
+      linkLabel: "read the acknowledgment",
+    },
     { grade: "A", title: "", detail: "", date: "", link: "" },
     { grade: "SS", title: "", detail: "", date: "", link: "" },
     { grade: "B", title: "", detail: "", date: "", link: "" },

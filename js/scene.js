@@ -25,10 +25,39 @@ function init() {
   host.appendChild(renderer.domElement);
 
   const PATH = 260; // world units travelled from top to bottom of the page
+  let nebDirty = true;
 
-  /* ---------- nebula (screen-space) ---------- */
+  /* ---------- nebula (screen-space) ----------
+     The expensive noise pass renders into a small off-screen texture (NEB_SCALE of the
+     screen) and only every other frame; a cheap pass upscales it and applies beat,
+     vignette and intro dimming every frame. The nebula is soft, so the low resolution
+     doesn't show, and this keeps the GPU cost tiny on high-refresh displays. */
+  const NEB_SCALE = 0.33;
+  const nebRT = new THREE.WebGLRenderTarget(4, 4, { depthBuffer: false, stencilBuffer: false });
   const bgScene = new THREE.Scene();
   const bgCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+  const compU = { tNeb: { value: nebRT.texture }, uBeat: { value: 0 }, uIntro: { value: 1 }, uAspect: { value: 1 } };
+  const compScene = new THREE.Scene();
+  compScene.add(
+    new THREE.Mesh(
+      new THREE.PlaneGeometry(2, 2),
+      new THREE.ShaderMaterial({
+        uniforms: compU,
+        depthWrite: false,
+        vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }`,
+        fragmentShader: /* glsl */ `
+          uniform sampler2D tNeb; uniform float uBeat, uIntro, uAspect; varying vec2 vUv;
+          void main(){
+            vec3 col = texture2D(tNeb, vUv).rgb;
+            vec2 uv = (vUv - 0.5) * vec2(uAspect, 1.0);
+            col *= 1.0 + uBeat * 0.35;
+            col *= smoothstep(1.45, 0.15, length(uv * vec2(0.85, 1.0)));
+            col *= mix(1.0, 0.55, uIntro);
+            gl_FragColor = vec4(col, 1.0);
+          }`,
+      })
+    )
+  );
   const nebU = {
     uTime: { value: 0 }, uBeat: { value: 0 }, uScroll: { value: 0 },
     uRes: { value: new THREE.Vector2(1, 1) }, uMouse: { value: new THREE.Vector2() }, uIntro: { value: 1 },
@@ -47,7 +76,7 @@ function init() {
           float n(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.0-2.0*f);
             return mix(mix(h(i),h(i+vec2(1,0)),f.x), mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x), f.y); }
           float fbm(vec2 p){ float v=0.0, a=0.5; mat2 r=mat2(0.8,0.6,-0.6,0.8);
-            for(int i=0;i<5;i++){ v+=a*n(p); p=r*p*2.03+11.7; a*=0.5; } return v; }
+            for(int i=0;i<4;i++){ v+=a*n(p); p=r*p*2.03+11.7; a*=0.5; } return v; }
           void main(){
             vec2 uv = (gl_FragCoord.xy - 0.5*uRes) / uRes.y;
             vec2 p = uv * 1.35 + vec2(uScroll * 0.9, -uScroll * 1.6) + uMouse * 0.04;
@@ -61,9 +90,6 @@ function init() {
             col += vec3(0.62, 0.62, 0.66) * pow(neb, 2.2) * 0.42 * (0.55 + 0.45 * lanes);
             col += vec3(0.31, 0.89, 1.0) * pow(neb, 4.5) * 0.10;               // faint cyan core
             col += vec3(0.9) * pow(max(0.0, 1.0 - length(uv - vec2(0.55, 0.15)) * 1.1), 3.0) * 0.06; // distant glow
-            col *= 1.0 + uBeat * 0.35;
-            col *= smoothstep(1.45, 0.15, length(uv * vec2(0.85, 1.0)));       // vignette
-            col *= mix(1.0, 0.55, uIntro);
             gl_FragColor = vec4(col, 1.0);
           }`,
       })
@@ -255,7 +281,11 @@ function init() {
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
     const pr = renderer.getPixelRatio();
-    nebU.uRes.value.set(w * pr, h * pr);
+    const rw = Math.max(64, Math.round(w * NEB_SCALE)), rh = Math.max(64, Math.round(h * NEB_SCALE));
+    nebRT.setSize(rw, rh);
+    nebU.uRes.value.set(rw, rh);
+    compU.uAspect.value = w / h;
+    nebDirty = true;
     starU.uPR.value = pr;
     const wide = w > 900;
     heroX = wide ? 3.1 : 0;
@@ -274,18 +304,25 @@ function init() {
   window.__sceneEnter = () => { intro = 0; warpT = performance.now(); };
 
   const clock = new THREE.Clock();
-  let camZ = 21, beatS = 0, introK = 1, slowAvg = 0.016, qFrames = 0;
+  let camZ = 21, beatS = 0, introK = 1, slowAvg = 0.016, qFrames = 0, refresh = 1 / 60, nebFrame = 0;
+  const refreshSamples = [];
 
   function frame() {
     requestAnimationFrame(frame);
     if (document.hidden) return;
     const dt = Math.min(clock.getDelta(), 0.1);
     // adaptive quality: if frames are slow, render at a lower resolution
-    slowAvg += (dt - slowAvg) * 0.05;
-    if (++qFrames > 90 && slowAvg > 0.028 && renderer.getPixelRatio() > 0.6) {
-      renderer.setPixelRatio(Math.max(0.6, renderer.getPixelRatio() - 0.25));
-      resize();
-      qFrames = 0;
+    // adaptive quality, relative to this display's refresh rate (60/120/144 Hz…):
+    // learn the frame interval first, then step resolution down if frames start dropping.
+    qFrames++;
+    if (qFrames <= 60) { if (qFrames > 10) refreshSamples.push(dt); if (qFrames === 60) { refreshSamples.sort((a, b) => a - b); refresh = refreshSamples[refreshSamples.length >> 1] || 1 / 60; } }
+    else {
+      slowAvg += (dt - slowAvg) * 0.05;
+      if (qFrames > 150 && slowAvg > refresh * 1.3 && renderer.getPixelRatio() > 0.75) {
+        renderer.setPixelRatio(Math.max(0.75, renderer.getPixelRatio() - 0.25));
+        resize();
+        qFrames = 61; slowAvg = refresh;
+      }
     }
     const t = clock.elapsedTime;
     const sp = reduce ? 0.15 : 1;
@@ -396,8 +433,16 @@ function init() {
     starU.uTime.value = t;
     starU.uBeat.value = beatS;
 
+    if (nebDirty || (nebFrame++ & 1) === 0) {
+      renderer.setRenderTarget(nebRT);
+      renderer.render(bgScene, bgCam);
+      renderer.setRenderTarget(null);
+      nebDirty = false;
+    }
+    compU.uBeat.value = beatS;
+    compU.uIntro.value = introK;
     renderer.clear();
-    renderer.render(bgScene, bgCam);
+    renderer.render(compScene, bgCam);
     renderer.render(scene, camera);
   }
   frame();

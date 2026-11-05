@@ -57,13 +57,14 @@ class Ahmad:
 
 ### `~/projects`
 
-| | repo | what it is |
+<!-- your projects — one row each:
+| ◉ | [**Name**](https://link) | one line on what it is |
+-->
+| | project | what it is |
 |:-:|---|---|
-| ◉ | [**Ahmads-Game-of-Information**](https://github.com/Ahmadhussain0033/Ahmads-Game-of-Information) | A Conway's Game-of-Life spin on information theory, and what learning is at its heart |
-| ◉ | [**WIG**](https://github.com/Ahmadhussain0033/WIG) | Fundamental theory and an approach to compression |
-| ◉ | [**Turing-Machines**](https://github.com/Ahmadhussain0033/Turing-Machines) | UTM |
-| ◉ | [**Ledger**](https://github.com/Ahmadhussain0033/Ledger) | <!-- todo: one line on the ledger --> the ledger |
-| ◉ | [**About-Me**](https://github.com/Ahmadhussain0033/About-Me) | this: my site. grayscale, 3D, rhythm-game energy |
+| ◉ | <!-- todo --> | <!-- todo --> |
+| ◉ | <!-- todo --> | <!-- todo --> |
+| ◉ | <!-- todo --> | <!-- todo --> |
 
 ### `~/now.md`
 
@@ -81,22 +82,21 @@ class Ahmad:
 
 ### `~/achievements`
 
-<p>
-  <img src="https://img.shields.io/badge/SS-locked-0a0a0b?style=flat-square&labelColor=f5f5f6" alt="locked">
-  <img src="https://img.shields.io/badge/S-locked-0a0a0b?style=flat-square&labelColor=4fe3ff" alt="locked">
-  <img src="https://img.shields.io/badge/A-locked-0a0a0b?style=flat-square&labelColor=6ee7a0" alt="locked">
-  <!-- todo: replace "locked" with real achievements -->
-</p>
+| | | |
+|:-:|---|---|
+| **SS** | **Critical vulnerability · [Compyle.ai](https://compyle.ai)** (YC F25) | Found and responsibly disclosed a critical credit-system bypass in an AI coding platform; fully remediated and formally acknowledged by the founder & CTO. <sub>Nov 2025 · [letter](https://github.com/Ahmadhussain0033/About-Me/blob/main/assets/docs/compyle-security-acknowledgment-2025.pdf)</sub> |
+| <sub>locked</sub> | <!-- todo --> | |
 
 ### `~/stats`
 
+<!-- self-hosted: regenerated every 6h by .github/workflows/readme-stats.yml (no third-party stat services) -->
 <p align="center">
-  <img src="https://streak-stats.demolab.com?user=Ahmadhussain0033&hide_border=true&background=0A0A0B&stroke=222226&ring=4FE3FF&fire=4FE3FF&currStreakNum=F5F5F6&sideNums=F5F5F6&currStreakLabel=4FE3FF&sideLabels=8A8A93&dates=5D5D65" alt="github streak" width="49%">
+  <img src="https://raw.githubusercontent.com/Ahmadhussain0033/About-Me/main/assets/readme/streak.svg" alt="github streak" width="49%">
   <a href="https://ahmadhussain0033.github.io/About-Me/#media"><img src="https://raw.githubusercontent.com/Ahmadhussain0033/About-Me/main/assets/readme/nowplaying.svg" alt="now playing: STRUCT" width="49%"></a>
 </p>
 
 <p align="center">
-  <img src="https://github-readme-activity-graph.vercel.app/graph?username=Ahmadhussain0033&bg_color=0a0a0b&color=8a8a93&line=4fe3ff&point=f5f5f6&area=true&area_color=4fe3ff&hide_border=true&title_color=f5f5f6" alt="contribution graph" width="100%">
+  <img src="https://raw.githubusercontent.com/Ahmadhussain0033/About-Me/main/assets/readme/contrib.svg" alt="contributions in the last 12 months" width="100%">
 </p>
 
 ### `./contact.sh`
@@ -109,4 +109,4 @@ $ email     # todo
 
 <img src="https://raw.githubusercontent.com/Ahmadhussain0033/About-Me/main/assets/readme/divider.svg" width="100%" alt="">
 
-<p align="center"><sub><code>/</code> opens the menu on my site · <code>m</code> plays the music · there's a typing test somewhere in there</sub></p>
+<p align="center"><sub><code>/</code> opens the menu on my site · <code>m</code> plays the music · type anything for the sounds</sub></p>

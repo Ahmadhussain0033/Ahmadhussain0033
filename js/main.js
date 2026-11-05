@@ -15,7 +15,7 @@
   const has = (v) => (typeof v === "string" ? v.trim() !== "" : v != null && v !== false);
   const todo = (label = "todo") => (C.showTodos === false ? "" : `<span class="todo">${esc(label)}</span>`);
   const or = (v, label) => (has(v) ? esc(v) : todo(label));
-  const safeUrl = (u) => (/^(https?:|mailto:)/i.test(String(u || "").trim()) ? String(u).trim() : "");
+  const safeUrl = (u) => { const v = String(u || "").trim(); return /^(https?:|mailto:)/i.test(v) || /^(assets|docs)\/[\w./-]+$/.test(v) ? v : ""; };
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
   const store = {
@@ -259,9 +259,16 @@
   addEventListener("pointerdown", (e) => { if (!body.classList.contains("is-intro")) hit(e.clientX, e.clientY); });
 
   const JC = { 300: "#4fe3ff", 100: "#6ee7a0", 50: "#ffd166", miss: "#ff5d73" };
+  let fxDirty = true;
   function drawFx(now) {
+    const busy = fxOn && (trail.length || bursts.length || charPops.length);
+    if (!busy) {
+      if (fxDirty) { fctx.clearRect(0, 0, W, H); fxDirty = false; }
+      if (!fxOn) { trail.length = 0; bursts.length = 0; charPops.length = 0; }
+      return;
+    }
+    fxDirty = true;
     fctx.clearRect(0, 0, W, H);
-    if (!fxOn) { trail.length = 0; bursts.length = 0; charPops.length = 0; return; }
     // trail
     while (trail.length && now - trail[0].t > 260) trail.shift();
     for (let i = 0; i < trail.length; i++) {
@@ -399,7 +406,8 @@
 
   const pBars = $$("#pViz i");
   const npViz = $("#npViz"), nctx = npViz.getContext("2d");
-  let beatS = 0, npVisible = false;
+  let beatS = 0, npVisible = false, lastBeatW = -1;
+  const kiaiEl = $("#kiai"), tunerEl = $("#introGo");
   new IntersectionObserver(([e]) => (npVisible = e.isIntersecting)).observe(npViz);
   function audioFrame() {
     let bass = 0;
@@ -412,7 +420,12 @@
     const target = clamp((bass - 0.5) / 0.4, 0, 1);
     beatS += (target - beatS) * (target > beatS ? 0.5 : 0.08);
     window.__beat = beatS;
-    root.style.setProperty("--beat", beatS.toFixed(3));
+    // direct, compositor-only writes (a root CSS variable would restyle the whole page every frame)
+    if (Math.abs(beatS - lastBeatW) > 0.01) {
+      lastBeatW = beatS;
+      kiaiEl.style.opacity = fxOn ? clamp((beatS - 0.45) * 2.2, 0, 1).toFixed(2) : "0";
+      if (!entered) tunerEl.style.transform = `scale(${(1 + beatS * 0.05).toFixed(3)})`;
+    }
     if (npVisible) drawNp();
   }
   function drawNp() {
@@ -513,9 +526,9 @@
   function setKeyMode(m) { keyMode = m; store.set("keys", m); renderSoundPicker(); keySound("key"); toast("keyboard sound: " + m); }
   function cycleKeyMode() { setKeyMode(KEY_MODES[(KEY_MODES.indexOf(keyMode) + 1) % KEY_MODES.length]); }
   function renderSoundPicker() {
-    const el = $("#ttSound");
+    const el = $("#keySound");
     if (!el) return;
-    el.innerHTML = `<span>sound</span>` + KEY_MODES.map((m) => `<button data-km="${m}" class="${m === keyMode ? "on" : ""}">${m}</button>`).join("");
+    el.innerHTML = `<span>keyboard sound</span>` + KEY_MODES.map((m) => `<button data-km="${m}" class="${m === keyMode ? "on" : ""}">${m}</button>`).join("");
   }
   document.addEventListener("click", (e) => { const b = e.target.closest("[data-km]"); if (b) setKeyMode(b.dataset.km); });
 
@@ -568,17 +581,22 @@
   let dispScore = 0;
   function loop(now) {
     // cursor
-    rx += (mx - rx) * 0.16; ry += (my - ry) * 0.16;
-    gx += (mx - gx) * 0.07; gy += (my - gy) * 0.07;
-    dot.style.transform = `translate3d(${mx}px,${my}px,0)`;
-    ring.style.transform = `translate3d(${rx}px,${ry}px,0)`;
-    if (fxOn) glow.style.transform = `translate3d(${gx}px,${gy}px,0)`;
+    if (Math.abs(mx - rx) + Math.abs(my - ry) + Math.abs(mx - gx) + Math.abs(my - gy) > 0.2) {
+      rx += (mx - rx) * 0.16; ry += (my - ry) * 0.16;
+      gx += (mx - gx) * 0.07; gy += (my - gy) * 0.07;
+      dot.style.transform = `translate3d(${mx}px,${my}px,0)`;
+      ring.style.transform = `translate3d(${rx}px,${ry}px,0)`;
+      if (fxOn) glow.style.transform = `translate3d(${gx}px,${gy}px,0)`;
+    }
     audioFrame();
     drawFx(now);
     // score roll
-    dispScore += (stats.score - dispScore) * 0.12;
-    scoreEl.textContent = String(Math.round(dispScore)).padStart(8, "0");
-    accEl.textContent = (accuracy() * 100).toFixed(2) + "%";
+    if (Math.abs(stats.score - dispScore) > 0.5) {
+      dispScore += (stats.score - dispScore) * 0.12;
+      scoreEl.textContent = String(Math.round(dispScore)).padStart(8, "0");
+    }
+    const accTxt = (accuracy() * 100).toFixed(2) + "%";
+    if (accEl.textContent !== accTxt) accEl.textContent = accTxt;
     if (mods.has("FL")) { root.style.setProperty("--flx", (body.classList.contains("has-mouse") ? mx : innerWidth / 2) + "px"); root.style.setProperty("--fly", (body.classList.contains("has-mouse") ? my : innerHeight / 2) + "px"); }
     if (mods.has("AT") && !navigating && !body.classList.contains("is-intro") && Date.now() > atPauseUntil && pal.hidden) window.scrollBy({ top: 1.4, behavior: "instant" });
     requestAnimationFrame(loop);
@@ -951,33 +969,35 @@
   }
   const shade = (s) => { let h = 0; for (const c of String(s)) h = (h * 31 + c.charCodeAt(0)) >>> 0; const g = 110 + (h % 130); return `rgb(${g},${g},${g})`; };
 
-  // projects
-  (async () => {
+  // projects — curated in config.js, nothing auto-pulled
+  (() => {
     const el = $("#repos");
-    const u = C.github;
-    $("#ghLink").href = `https://github.com/${u}`;
-    if (!has(u)) { el.innerHTML = `<div class="placeholder">${todo("set github username in config.js")}</div>`; return; }
-    try {
-      const repos = await gh(`/users/${encodeURIComponent(u)}/repos?per_page=100&sort=pushed`);
-      const hide = new Set((C.hideRepos || []).map((x) => x.toLowerCase()));
-      const list = repos
-        .filter((r) => !r.fork && !hide.has(r.name.toLowerCase()))
-        .sort((a, b) => b.stargazers_count - a.stargazers_count || new Date(b.pushed_at) - new Date(a.pushed_at))
-        .slice(0, C.projectsLimit || 6);
-      if (!list.length) { el.innerHTML = `<div class="placeholder">no public repositories yet — <b>first one loading…</b></div>`; return; }
-      el.innerHTML = list
-        .map(
-          (r) => `<a class="repo" href="${esc(r.html_url)}" target="_blank" rel="noopener" data-reveal>
-            <h4>${esc(r.name)}</h4>
-            <p>${r.description ? esc(r.description) : '<span class="todo">no description</span>'}</p>
-            <div class="meta">${r.language ? `<span><i class="lang-dot" style="background:${shade(r.language)}"></i>${esc(r.language)}</span>` : ""}<span>★ ${r.stargazers_count}</span><span>⑂ ${r.forks_count}</span><span>${esc(ago(r.pushed_at))}</span></div>
-          </a>`
-        )
-        .join("");
-      reveal(el);
-    } catch (err) {
-      el.innerHTML = `<div class="placeholder">couldn't reach github (${esc(err.message)}) — <a href="https://github.com/${esc(u)}" target="_blank" rel="noopener">view profile →</a></div>`;
-    }
+    const list = (C.projects || []).filter((p) => p && (C.showTodos !== false || has(p.title)));
+    if (!list.length) { el.innerHTML = `<div class="placeholder">${todo("add your projects in config.js → projects")}</div>`; return; }
+    const stLabel = { done: "shipped", doing: "in progress", blocked: "blocked", idea: "idea" };
+    el.innerHTML = list
+      .map((p, i) => {
+        const st = ["done", "doing", "blocked", "idea"].includes(p.status) ? p.status : "idea";
+        const link = safeUrl(p.link);
+        const repo = /^[\w.-]+\/[\w.-]+$/.test(String(p.repo || "").trim()) ? String(p.repo).trim() : "";
+        const tags = (p.tags || []).filter(has);
+        return `<article class="proj${p.featured ? " featured" : ""}" data-reveal>
+          <div class="proj-top mono"><span class="proj-n">${String(i + 1).padStart(2, "0")}</span><span class="tag ${st === "done" ? "proven" : st === "doing" ? "conjecture" : st === "blocked" ? "open" : ""}"><i class="st ${st}"></i>${stLabel[st]}</span>${has(p.year) ? `<span class="dim">${esc(p.year)}</span>` : ""}</div>
+          <h4>${or(p.title, "project title")}</h4>
+          <p>${or(p.blurb, "what it is, in a sentence or two")}</p>
+          ${tags.length ? `<div class="proj-tags mono">${tags.map((t) => `<span>${esc(t)}</span>`).join("")}</div>` : C.showTodos !== false ? `<div class="proj-tags mono">${todo("tags")}</div>` : ""}
+          <div class="proj-links mono">
+            ${link ? `<a href="${esc(link)}" target="_blank" rel="noopener">open ↗</a>` : ""}
+            ${repo ? `<a href="https://github.com/${esc(repo)}" target="_blank" rel="noopener">source ↗</a><span class="dim" data-stars="${esc(repo)}"></span>` : ""}
+          </div>
+        </article>`;
+      })
+      .join("");
+    reveal(el);
+    // optional live star counts for projects that name a repo
+    $$("[data-stars]", el).forEach(async (s) => {
+      try { const r = await gh(`/repos/${s.dataset.stars}`); s.textContent = `★ ${r.stargazers_count}`; } catch { /* keep quiet */ }
+    });
   })();
 
   // ledger
@@ -1054,6 +1074,7 @@
           <h4>${locked ? '<span class="dim">locked</span>' : url ? `<a href="${esc(url)}" target="_blank" rel="noopener">${esc(a.title)}</a>` : esc(a.title)}</h4>
           <p>${locked ? todo("achievement") : or(a.detail, "detail")}</p>
           ${has(a.date) ? `<span class="date">${esc(a.date)}</span>` : ""}
+          ${!locked && url && has(a.linkLabel) ? `<a class="medal-link mono" href="${esc(url)}" target="_blank" rel="noopener">${esc(a.linkLabel)} ↗</a>` : ""}
         </div>`;
       })
       .join("");
@@ -1343,7 +1364,9 @@
     while (typeTimes.length && now - typeTimes[0] > 8000) typeTimes.shift();
     if (typeTimes.length >= 4) {
       const mins = Math.max(1500, now - typeTimes[0]) / 60000;
-      hudWpmN.textContent = Math.round(typeTimes.length / 5 / mins);
+      const w = Math.round(typeTimes.length / 5 / mins);
+      hudWpmN.textContent = w;
+      if (typeTimes.length >= 15) stats.bestWpm = Math.max(stats.bestWpm || 0, w);
       hudWpm.classList.add("show");
     }
     clearTimeout(wpmHideT);
@@ -1352,7 +1375,7 @@
   function pulse(el) { el.classList.remove("typing-pulse"); void el.offsetWidth; el.classList.add("typing-pulse"); }
   document.addEventListener("keydown", (e) => {
     const el = e.target;
-    if (!editable(el) || el.id === "ttInput" || e.ctrlKey || e.metaKey || e.altKey) return;
+    if (!editable(el) || e.ctrlKey || e.metaKey || e.altKey) return;
     let kind = null;
     if (e.key.length === 1) kind = e.key === " " ? "space" : "key";
     else if (e.key === "Backspace") kind = "back";
@@ -1365,185 +1388,39 @@
     if (fxOn && kind === "key") requestAnimationFrame(() => { const p = caretXY(el); charPops.push({ x: p.x, y: p.y, ch: e.key, t: performance.now(), vx: (Math.random() - 0.5) * 30 }); });
   }, true);
 
-  /* ---------------- type test ---------------- */
-  const TT = (() => {
-    const WORDS = ("signal noise bit entropy message channel code light music river window coffee orbit cloud random pattern answer question simple theory proof idea " +
-      "learn build dream night morning city ocean planet star system logic shape color sound rhythm number story letter friend world future memory power energy space " +
-      "time focus quiet storm wave field point line circle square motion balance chance choice moment reason truth source compress decode encode measure surprise order " +
-      "chaos layer graph limit value nothing everything human brain paper write read think play make share open close begin finish small large ancient modern bright " +
-      "silver cyan black white mirror garden winter summer echo pulse spark thread signal clock").split(" ");
-    const box = $("#ttBox"), wordsEl = $("#ttWords"), caret = $("#ttCaret"), inp = $("#ttInput"), result = $("#ttResult"), live = $(".tt-live");
-    const timerEl = $("#ttTimer"), wpmEl = $("#ttWpm"), accEl2 = $("#ttAcc"), pbEl = $("#ttPb");
-    $("#ttFocus").textContent = "click here, then just type";
-    let mode = store.get("ttMode", { m: "time", n: 30 });
-    if (!mode || !["time", "words"].includes(mode.m)) mode = { m: "time", n: 30 };
-    let words = [], typed = [], wi = 0, started = 0, ended = false, timer = null, keys = 0, goodKeys = 0;
-    const SENT = "​";
-    const pbKey = () => `pb:${mode.m}${mode.n}`;
-    function gen(n) {
-      const out = [];
-      for (let i = 0; i < n; i++) { let w; do { w = WORDS[(Math.random() * WORDS.length) | 0]; } while (w === out[i - 1]); out.push(w); }
-      return out;
-    }
-    function updateWord(i) {
-      const el = wordsEl.children[i];
-      if (!el) return;
-      const w = words[i], t = typed[i];
-      let html = "";
-      for (let k = 0; k < Math.max(w.length, t.length); k++) {
-        if (k < w.length) html += `<span class="l ${k < t.length ? (t[k] === w[k] ? "ok" : "bad") : ""}">${esc(w[k])}</span>`;
-        else html += `<span class="l extra">${esc(t[k])}</span>`;
-      }
-      el.innerHTML = html;
-      el.classList.toggle("err", i < wi && t !== w);
-    }
-    function placeCaret(depth = 0) {
-      const el = wordsEl.children[wi];
-      if (!el) return;
-      const ls = el.children, n = typed[wi].length;
-      const lh = el.offsetHeight || 1;
-      const firstVisible = [...wordsEl.children].find((w) => !w.classList.contains("gone"));
-      const rel = el.offsetTop - (firstVisible ? firstVisible.offsetTop : 0);
-      if (rel >= lh * 2 - 2 && depth < 3) {
-        const top0 = firstVisible.offsetTop;
-        [...wordsEl.children].forEach((w, i) => { if (i < wi && !w.classList.contains("gone") && w.offsetTop === top0) w.classList.add("gone"); });
-        return placeCaret(depth + 1);
-      }
-      const l = n < ls.length ? ls[n] : ls[ls.length - 1];
-      const x = n < ls.length ? l.offsetLeft : l.offsetLeft + l.offsetWidth;
-      caret.style.transform = `translate(${x}px, ${el.offsetTop}px)`;
-    }
-    function stat() {
-      const mins = Math.max(1e-6, ((ended ? endAt : performance.now()) - started) / 60000);
-      let correct = 0;
-      for (let i = 0; i < wi; i++) if (typed[i] === words[i]) correct += words[i].length + (i < words.length - 1 ? 1 : 0); // +1 = the space after it
-      if (wi < words.length && typed[wi] && words[wi].startsWith(typed[wi])) correct += typed[wi].length;
-      return { wpm: correct / 5 / mins, raw: keys / 5 / mins, acc: keys ? (goodKeys / keys) * 100 : 100, secs: mins * 60 };
-    }
-    let endAt = 0;
-    function tick() {
-      if (!started || ended) return;
-      const st = stat();
-      wpmEl.textContent = Math.round(st.wpm);
-      accEl2.textContent = Math.round(st.acc);
-      if (mode.m === "time") {
-        const left = mode.n - (performance.now() - started) / 1000;
-        timerEl.textContent = Math.max(0, Math.ceil(left));
-        if (left <= 0) finish();
-      }
-    }
-    function start() { if (!started) { started = performance.now(); timer = setInterval(tick, 150); } }
-    function showPb() { const pb = store.get(pbKey(), 0); pbEl.textContent = pb ? `pb ${pb} wpm` : ""; }
-    function reset() {
-      clearInterval(timer); timer = null; started = 0; ended = false; wi = 0; keys = 0; goodKeys = 0;
-      words = gen(mode.m === "time" ? 140 : mode.n);
-      typed = words.map(() => "");
-      wordsEl.innerHTML = words.map((w, i) => `<div class="w" data-i="${i}">${[...w].map((ch) => `<span class="l">${esc(ch)}</span>`).join("")}</div>`).join("");
-      result.hidden = true; box.hidden = false; live.hidden = false;
-      timerEl.textContent = mode.m === "time" ? mode.n : `0/${mode.n}`;
-      wpmEl.textContent = "0"; accEl2.textContent = "100";
-      box.classList.remove("typing");
-      inp.value = SENT;
-      $$("#ttModes button").forEach((b) => b.classList.toggle("on", b.dataset.mode === mode.m && +b.dataset.n === mode.n));
-      showPb();
-      requestAnimationFrame(() => placeCaret());
-    }
-    function finish() {
-      if (ended) return;
-      endAt = performance.now();
-      ended = true;
-      clearInterval(timer);
-      const st = stat();
-      const wpm = Math.round(st.wpm), acc = st.acc;
-      // site grading for the test: accuracy bands
-      const g = acc >= 100 ? "SS" : acc >= 95 ? "S" : acc >= 90 ? "A" : acc >= 80 ? "B" : acc >= 70 ? "C" : "D";
-      const pb = store.get(pbKey(), 0);
-      const isPb = wpm > pb && acc >= 70;
-      if (isPb) store.set(pbKey(), wpm);
-      if (acc >= 70) store.set("bestWpm", Math.max(store.get("bestWpm", 0), wpm));
-      let ok = 0, bad = 0, extra = 0, missed = 0;
-      for (let i = 0; i < Math.min(wi + 1, words.length); i++) {
-        const w = words[i], t = typed[i];
-        for (let k = 0; k < Math.max(w.length, t.length); k++) {
-          if (k >= w.length) extra++; else if (k >= t.length) { if (i < wi) missed++; } else if (t[k] === w[k]) ok++; else bad++;
-        }
-      }
-      box.hidden = true; live.hidden = true; result.hidden = false;
-      result.innerHTML = `<div class="grade-big g-${g}">${g}</div>
-        <div><div class="tt-r-main">
-          <div><b>${wpm}</b><span>wpm</span></div>
-          <div><b class="acc">${acc.toFixed(1)}%</b><span>accuracy</span></div>
-          <div><b>${Math.round(st.raw)}</b><span>raw</span></div>
-          <div><b>${Math.round(st.secs)}s</b><span>${esc(mode.m)} ${mode.n}</span></div>
-        </div>
-        <div class="tt-r-sub">chars ${ok} correct · ${bad} wrong · ${extra} extra · ${missed} missed${isPb ? ' · <span class="pb">new personal best!</span>' : ""} · <kbd>tab</kbd> or <button class="linkish" id="ttAgain">restart</button></div></div>`;
-      $("#ttAgain").addEventListener("click", () => { reset(); inp.focus(); });
-      const r = result.getBoundingClientRect();
-      if (isPb) for (let i = 0; i < 6; i++) setTimeout(() => hit(r.left + 64, r.top + 64, "300"), i * 110);
-      inp.focus();
-    }
-    function typeChar(ch) {
-      if (ended) return;
-      start();
-      keySound("key");
-      keys++;
-      if (words[wi][typed[wi].length] === ch) goodKeys++;
-      if (typed[wi].length < words[wi].length + 8) typed[wi] += ch;
-      updateWord(wi); placeCaret();
-      box.classList.add("typing");
-      clearTimeout(box._t); box._t = setTimeout(() => box.classList.remove("typing"), 500);
-      if (mode.m === "words" && wi === words.length - 1 && typed[wi] === words[wi]) { wi++; finish(); }
-    }
-    function typeSpace() {
-      if (ended || !typed[wi].length) return;
-      start();
-      keySound("space");
-      keys++;
-      if (typed[wi] === words[wi]) goodKeys++;
-      wi++;
-      updateWord(wi - 1);
-      if (mode.m === "words") timerEl.textContent = `${wi}/${mode.n}`;
-      if (wi >= words.length) return finish();
-      placeCaret();
-    }
-    function typeBack(word) {
-      if (ended) return;
-      keySound("back");
-      if (word) typed[wi] = "";
-      else if (typed[wi].length) typed[wi] = typed[wi].slice(0, -1);
-      else if (wi > 0 && typed[wi - 1] !== words[wi - 1]) { wi--; const el = wordsEl.children[wi]; if (el) el.classList.remove("gone"); }
-      updateWord(wi); updateWord(wi + 1); placeCaret();
-    }
-    inp.addEventListener("keydown", (e) => {
-      if (e.key === "Tab") { e.preventDefault(); keySound("enter"); reset(); return; }
-      if (e.key === "Escape") { inp.blur(); return; }
-      if (e.key === "Backspace") { e.preventDefault(); typeBack(e.ctrlKey || e.altKey || e.metaKey); return; }
-      if (e.ctrlKey || e.metaKey || e.altKey) return;
-      if (e.key === " ") { e.preventDefault(); typeSpace(); return; }
-      if (e.key.length === 1) { e.preventDefault(); typeChar(e.key); }
-    });
-    // mobile keyboards often send key "Unidentified": read what actually landed in the input
-    inp.addEventListener("input", () => {
-      const v = inp.value;
-      if (v === SENT) return;
-      if (!v.includes(SENT) && v.length === 0) typeBack(false);
-      else for (const ch of v.replace(SENT, "")) ch === " " ? typeSpace() : typeChar(ch);
-      inp.value = SENT;
-    });
-    inp.addEventListener("focus", () => box.classList.add("focused"));
-    inp.addEventListener("blur", () => box.classList.remove("focused"));
-    $("#ttModes").addEventListener("click", (e) => {
-      const b = e.target.closest("button[data-mode]");
-      if (!b) return;
-      mode = { m: b.dataset.mode, n: +b.dataset.n };
-      store.set("ttMode", mode);
-      reset();
-      inp.focus();
-    });
-    addEventListener("resize", () => placeCaret());
-    reset();
-    return { reset };
-  })();
+
+  /* ---------------- smooth caret (monkeytype-style) ---------------- */
+  const scaret = $("#scaret");
+  const caretable = (el) => el && (el.tagName === "TEXTAREA" || (el.tagName === "INPUT" && /^(text|email|search|url|tel|password|)$/.test(el.type)));
+  let caretEl = null, caretIdle;
+  function moveCaret() {
+    if (!caretEl || !fxOn || !finePointer) return;
+    const p = caretXY(caretEl);
+    const cs = getComputedStyle(caretEl);
+    const h = Math.round((parseFloat(cs.fontSize) || 16) * 1.25);
+    scaret.style.height = h + "px";
+    scaret.style.transform = `translate3d(${p.x - 1}px, ${p.y - h / 2}px, 0)`;
+    scaret.classList.add("moving");
+    clearTimeout(caretIdle);
+    caretIdle = setTimeout(() => scaret.classList.remove("moving"), 450);
+  }
+  document.addEventListener("focusin", (e) => {
+    if (!caretable(e.target) || !fxOn || !finePointer) return;
+    caretEl = e.target;
+    caretEl.classList.add("own-caret");
+    scaret.classList.add("on");
+    requestAnimationFrame(moveCaret);
+  });
+  document.addEventListener("focusout", (e) => {
+    if (e.target !== caretEl) return;
+    caretEl.classList.remove("own-caret");
+    caretEl = null;
+    scaret.classList.remove("on");
+  });
+  ["input", "keyup", "click", "select"].forEach((ev) => document.addEventListener(ev, (e) => { if (e.target === caretEl) requestAnimationFrame(moveCaret); }));
+  document.addEventListener("selectionchange", () => { if (caretEl && document.activeElement === caretEl) requestAnimationFrame(moveCaret); });
+  addEventListener("scroll", () => { if (caretEl) moveCaret(); }, { passive: true });
+  document.addEventListener("scroll", (e) => { if (e.target === caretEl) moveCaret(); }, true);
 
   /* ---------------- results screen ---------------- */
   (() => {
@@ -1563,7 +1440,7 @@
       set("rExplored", `${stats.seen.size} / ${sections.length}`);
       const secs = Math.floor((Date.now() - stats.t0) / 1000);
       set("rTime", `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, "0")}`);
-      const bw = store.get("bestWpm", 0);
+      const bw = Math.round(stats.bestWpm || 0);
       set("rWpm", bw ? bw + " wpm" : "—");
       set("rMods", stats.mods.size ? [...stats.mods].join(" ") : "none");
     }
@@ -1586,5 +1463,5 @@
   onScroll();
   requestAnimationFrame(loop);
   if (!finePointer) body.classList.remove("has-mouse");
-  window.__site = { go, openPal, toggleMusic, isPlaying, hit, stats, grade, accuracy, toggleMod, TT };
+  window.__site = { go, openPal, toggleMusic, isPlaying, hit, stats, grade, accuracy, toggleMod };
 })();

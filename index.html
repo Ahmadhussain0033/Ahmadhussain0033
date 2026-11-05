@@ -62,6 +62,7 @@
   <canvas id="fx" aria-hidden="true"></canvas>
   <div id="cur-dot" aria-hidden="true"></div>
   <div id="cur-ring" aria-hidden="true"></div>
+  <div id="scaret" aria-hidden="true"></div>
   <div id="wipe" aria-hidden="true"><i></i><i></i><i></i><b class="mono" id="wipeLabel"></b></div>
 
   <!-- ============ HUD ============ -->
@@ -185,33 +186,10 @@
       <div id="papers"></div>
     </section>
 
-    <!-- TYPE TEST -->
-    <section id="type" data-file="type.test" data-title="type test">
-      <p class="lead" data-reveal>a tiny typing test. sounds on, click the box and start typing. <span class="mono dim">tab = restart</span></p>
-      <div class="tt panel" data-reveal>
-        <div class="tt-bar mono">
-          <div class="tt-modes" id="ttModes">
-            <button data-mode="time" data-n="15">15s</button><button data-mode="time" data-n="30" class="on">30s</button><button data-mode="time" data-n="60">60s</button>
-            <span class="sep">|</span>
-            <button data-mode="words" data-n="10">10w</button><button data-mode="words" data-n="25">25w</button>
-          </div>
-          <div class="tt-sound" id="ttSound"></div>
-        </div>
-        <div class="tt-live mono"><span id="ttTimer">30</span><span><b id="ttWpm">0</b> wpm</span><span><b id="ttAcc">100</b>% acc</span><span class="dim" id="ttPb"></span></div>
-        <div class="tt-box" id="ttBox">
-          <div class="tt-words" id="ttWords"></div>
-          <div class="tt-caret" id="ttCaret"></div>
-          <div class="tt-focus mono" id="ttFocus">click here or press any key to focus</div>
-          <input id="ttInput" class="tt-input" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Typing test input" />
-        </div>
-        <div class="tt-result" id="ttResult" hidden></div>
-      </div>
-    </section>
-
     <!-- 05 PROJECTS -->
     <section id="projects" data-file="projects/" data-title="projects">
-      <p class="lead" data-reveal>pulled live from <a id="ghLink" href="#" target="_blank" rel="noopener">github</a>.</p>
-      <div class="repo-grid" id="repos"><div class="loading mono">fetching repositories<span class="dots"></span></div></div>
+      <p class="lead" data-reveal>things i've built, am building, or can't stop thinking about.</p>
+      <div class="repo-grid" id="repos"></div>
     </section>
 
     <!-- 06 LEDGER -->
@@ -328,6 +306,7 @@
             <div class="field-row"><span class="err mono" data-for="cfMsg"></span><span class="mono dim" id="cfCount">0 / 2000</span></div>
           </div>
           <input type="checkbox" name="botcheck" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true" />
+          <div class="key-sound mono" id="keySound" aria-label="Keyboard sound"></div>
           <div class="cf-actions">
             <button type="submit" class="btn btn-hi" id="cfSend">send message <span class="mono">→</span></button>
             <span class="mono dim small">or <kbd>ctrl</kbd>+<kbd>enter</kbd></span>
