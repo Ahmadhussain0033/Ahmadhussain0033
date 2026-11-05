@@ -282,13 +282,8 @@ window.SITE = {
     { label: "support (ledger)", url: "https://ahmadhussain0033.github.io/Ledger/" },
     { label: "youtube", url: "" },
     { label: "discord", url: "https://discord.com" },
-    { label: "x / twitter", url: "" },
-    { label: "linkedin", url: "" },
     { label: "instagram · @ahemod", url: "https://instagram.com/ahemod" },
-    { label: "google scholar", url: "" },
-    { label: "reddit", url: "" },
-    { label: "twitch", url: "" },
-    { label: "spotify", url: "" },
+    { label: "spotify", url: "https://open.spotify.com/user/31dz3lsjwqvgd2a55ofvyt5px5g4" },
   ],
 
   /* ---------- hexoro — your company (only shown as a fact + a small tag) ---------- */

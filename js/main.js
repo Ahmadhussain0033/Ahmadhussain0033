@@ -978,7 +978,8 @@
             return `<div class="paper" data-reveal><span class="y">${esc(p.year)}</span><div>${url ? `<a href="${esc(url)}" target="_blank" rel="noopener">${esc(p.title)}</a>` : esc(p.title)} <span class="dim mono small">${esc(p.venue)}</span></div></div>`;
           })
           .join("")
-      : `<div class="placeholder" data-reveal>${todo("papers & notes — add them in config.js → papers")}</div>`;
+      : "";
+    if (!papers.length) { $("#papersHead").remove(); $("#papers").remove(); } // nothing to show yet → no empty block
 
   })();
 
@@ -986,7 +987,8 @@
   (() => {
     if (has(C.thoughtsTitle)) $("#thoughtsTitle").textContent = C.thoughtsTitle;
     const paras = (C.thoughts || []).filter(has);
-    $("#thoughts").innerHTML = paras.length ? paras.map((p) => `<p>${mdInline(p)}</p>`).join("") : `<p>${todo("your thoughts — write them in config.js → thoughts")}</p>`;
+    if (!paras.length) { $("#thoughtsHead").remove(); $("#thoughts").remove(); $("#researchHead").classList.add("first"); return; }
+    $("#thoughts").innerHTML = paras.map((p) => `<p>${mdInline(p)}</p>`).join("");
   })();
 
   // GitHub helper (cached per session to stay under the 60 req/h limit)
@@ -1279,7 +1281,9 @@
         server.innerHTML = `${head()}<div class="placeholder">${joinBtn(inv)}</div>`;
         return;
       }
-      server.innerHTML = `${head()}<div class="placeholder">no server linked yet<br>${todo("discord.serverInvite (e.g. https://discord.gg/xxxx) and/or discord.serverId in config.js")}</div>`;
+      // no server yet → just the profile card (set discord.serverInvite / serverId to bring it back)
+      server.parentElement.classList.add("solo");
+      server.remove();
     }
     loadServer();
 
@@ -1567,7 +1571,7 @@
     const quick = [
       has(dcUser) && { k: "discord", v: "@" + dcUser, act: `<button class="btn btn-hi" data-copy="${esc(dcUser)}" data-copy-label="discord username">copy</button>`, note: "usually the fastest" },
       { k: "email", v: has(C.email) ? C.email : "", act: has(C.email) ? `<button class="btn btn-hi" data-copy="${esc(C.email)}" data-copy-label="email">copy</button><a class="btn" href="mailto:${esc(C.email)}">write ↗</a>` : "", note: "for anything longer" },
-      { k: "book a call", v: safeUrl(C.bookingUrl) ? "pick a time that works" : "", act: safeUrl(C.bookingUrl) ? `<a class="btn btn-hi" href="${esc(safeUrl(C.bookingUrl))}" target="_blank" rel="noopener">book ↗</a>` : "", note: "15–30 min, video or voice" },
+      safeUrl(C.bookingUrl) && { k: "book a call", v: "pick a time that works", act: `<a class="btn btn-hi" href="${esc(safeUrl(C.bookingUrl))}" target="_blank" rel="noopener">book ↗</a>`, note: "15–30 min, video or voice" },
       safeUrl((C.ledger || {}).site) && { k: "support", v: "back what i'm working on", act: `<a class="btn btn-hi" href="${esc(safeUrl(C.ledger.site) + "#donate")}" target="_blank" rel="noopener">support ♥</a>`, note: "every expense is public" },
     ].filter(Boolean);
     $("#quickContact").innerHTML = quick

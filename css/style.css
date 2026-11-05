@@ -457,6 +457,7 @@ a.dc-title:hover { text-decoration: underline; }
 .dc-elapsed { color: var(--green); margin-top: 2px; }
 .dc-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
 .dc-foot { font-size: .66rem; margin-top: 12px; }
+.grid-2.solo { grid-template-columns: minmax(0, 560px); }
 .dc-widget { width: 100%; height: 360px; border: 0; border-radius: 10px; display: block; }
 /* server card */
 .dsv-top { display: flex; gap: 16px; align-items: center; margin: 6px 0 18px; }
