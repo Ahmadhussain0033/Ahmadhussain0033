@@ -127,10 +127,28 @@
 
     <!-- 01 ABOUT -->
     <section id="about" data-file="about.md" data-title="about me">
-      <div class="grid-2">
-        <div class="md" id="aboutText" data-reveal></div>
+      <div class="about-top">
+        <aside class="about-card panel" data-reveal>
+          <div class="about-photo"><img id="aboutPhoto" alt="" loading="lazy" /><i class="st" id="aboutDot"></i></div>
+          <div class="about-name" id="aboutName"></div>
+          <div class="mono dim small" id="aboutHandle"></div>
+          <div class="about-tags mono" id="aboutTags"></div>
+        </aside>
+        <div class="md about-text" id="aboutText" data-reveal></div>
+      </div>
+      <div class="grid-2 about-more">
         <div data-reveal>
           <table class="md-table" id="facts"><thead><tr><th>key</th><th>value</th></tr></thead><tbody></tbody></table>
+        </div>
+        <div class="about-side">
+          <div class="panel" data-reveal>
+            <div class="panel-head mono"><span>ask me about</span><a href="#contact" data-nav>start a conversation →</a></div>
+            <div class="ask-chips" id="askMe"></div>
+          </div>
+          <div class="panel" data-reveal>
+            <div class="panel-head mono"><span>$ git log --reverse me</span></div>
+            <ol class="journey" id="journey"></ol>
+          </div>
         </div>
       </div>
     </section>
@@ -166,6 +184,11 @@
       <div class="repo-grid" id="repos"></div>
     </section>
 
+    <!-- HEXORO -->
+    <section id="hexoro" data-file="hexoro/" data-title="hexoro · my organization">
+      <div class="hx-card panel" id="hexoroCard" data-reveal></div>
+    </section>
+
     <!-- 06 LEDGER -->
     <section id="ledger" data-file="ledger/" data-title="the ledger · support">
       <div id="ledgerBody"></div>
@@ -195,11 +218,6 @@
       <div class="table-scroll" data-reveal>
         <table class="md-table" id="libTable"><thead><tr><th>kind</th><th>title</th><th>by</th><th>why it stuck</th></tr></thead><tbody></tbody></table>
       </div>
-    </section>
-
-    <!-- 11 PRINCIPLES -->
-    <section id="principles" data-file="principles.md" data-title="principles">
-      <ol class="principles" id="principlesList"></ol>
     </section>
 
     <!-- 12 MEDIA -->
@@ -237,16 +255,23 @@
     <section id="log" data-file="log/" data-title="log">
       <p class="lead mono dim" data-reveal>$ git log --oneline --reverse thoughts</p>
       <div class="log" id="logList"></div>
+      <h3 class="sub" data-reveal><span class="h-mark">###</span> live from github</h3>
+      <div class="panel" data-reveal>
+        <div class="panel-head mono"><span>$ gh api users/<span id="ghUser"></span>/events</span><a id="ghUserLink" target="_blank" rel="noopener">profile →</a></div>
+        <ul class="gh-feed" id="ghFeed"><li class="dim mono">reading activity<span class="dots"></span></li></ul>
+      </div>
     </section>
 
     <!-- 15 GUESTBOOK -->
     <section id="guestbook" data-file="guestbook.md" data-title="guestbook">
-      <p class="lead" data-reveal>leave a note, a question, or just your name. signed with github.</p>
+      <p class="lead" data-reveal>leave a note, a question, or just your name. it goes up on the wall for everyone who visits.</p>
       <div class="panel" id="giscusBox" data-reveal></div>
     </section>
 
     <!-- 16 CONTACT -->
     <section id="contact" data-file="contact.sh" data-title="get in touch">
+      <p class="lead" data-reveal>questions, ideas, collaborations, or just saying hi. pick whatever's easiest for you.</p>
+      <div class="quick-contact" id="quickContact"></div>
       <div class="contact">
         <form class="panel cform" id="cform" novalidate data-reveal>
           <div class="panel-head mono"><span>$ ./contact.sh</span><span class="dim" id="cfMode"></span></div>
@@ -266,6 +291,8 @@
               <label><input type="radio" name="topic" value="research" checked /><span>research</span></label>
               <label><input type="radio" name="topic" value="collaboration" /><span>collaboration</span></label>
               <label><input type="radio" name="topic" value="opportunity" /><span>opportunity</span></label>
+              <label><input type="radio" name="topic" value="hexoro" /><span>hexoro</span></label>
+              <label><input type="radio" name="topic" value="support" /><span>support / donations</span></label>
               <label><input type="radio" name="topic" value="just saying hi" /><span>just saying hi</span></label>
               <label><input type="radio" name="topic" value="something else" /><span>something else</span></label>
             </div>
@@ -276,7 +303,6 @@
             <div class="field-row"><span class="err mono" data-for="cfMsg"></span><span class="mono dim" id="cfCount">0 / 2000</span></div>
           </div>
           <input type="checkbox" name="botcheck" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true" />
-          <div class="key-sound mono" id="keySound" aria-label="Keyboard sound"></div>
           <div class="cf-actions">
             <button type="submit" class="btn btn-hi" id="cfSend">send message <span class="mono">→</span></button>
             <span class="mono dim small">or <kbd>ctrl</kbd>+<kbd>enter</kbd></span>
@@ -296,37 +322,21 @@
             </dl>
           </div>
           <div class="panel">
+            <div class="panel-head mono"><span>best way to reach me</span></div>
+            <ol class="reach" id="reachMe"></ol>
+          </div>
+          <div class="panel">
+            <div class="panel-head mono"><span>open to</span></div>
+            <ul class="open-to" id="openTo"></ul>
+          </div>
+          <div class="panel">
             <div class="panel-head mono"><span>elsewhere</span></div>
             <ul class="socials" id="socials"></ul>
           </div>
         </aside>
       </div>
-    </section>
-
-    <!-- RESULTS -->
-    <section id="results" data-file="results.log" data-title="your results">
-      <p class="lead" data-reveal>every click is a hit. here's how your visit is going.</p>
-      <div class="results panel" data-reveal>
-        <div class="res-grade"><div class="grade-big" id="resGrade">SS</div><span class="mono dim" id="resGradeNote">ranking</span></div>
-        <div class="res-main">
-          <div class="res-score" id="resScore">00000000</div>
-          <div class="res-grid mono">
-            <div><span class="j300">300</span><b id="r300">0</b></div>
-            <div><span class="j100">100</span><b id="r100">0</b></div>
-            <div><span class="j50">50</span><b id="r50">0</b></div>
-            <div><span class="jx">miss</span><b id="rMiss">0</b></div>
-          </div>
-          <div class="res-stats mono">
-            <div><span>accuracy</span><b id="rAcc">100.00%</b></div>
-            <div><span>max combo</span><b id="rCombo">0x</b></div>
-            <div><span>explored</span><b id="rExplored">0 / 0</b></div>
-            <div><span>time</span><b id="rTime">0:00</b></div>
-            <div><span>best wpm</span><b id="rWpm">—</b></div>
-            <div><span>mods</span><b id="rMods">none</b></div>
-          </div>
-          <div class="res-actions"><button class="btn" id="resRetry">retry</button><button class="btn btn-ghost mono" data-open-palette>mods → press <kbd>/</kbd> and type "mod"</button></div>
-        </div>
-      </div>
+      <h3 class="sub" data-reveal><span class="h-mark">###</span> before you ask</h3>
+      <div class="faq" id="contactFaq"></div>
     </section>
 
     <footer class="foot mono">

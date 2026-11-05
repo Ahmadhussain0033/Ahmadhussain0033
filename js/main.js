@@ -465,8 +465,8 @@
   }
 
   /* ---------------- synthesized sound effects (no samples) ---------------- */
-  const KEY_MODES = ["click", "thock", "typewriter", "pop", "piano", "off"];
-  let keyMode = KEY_MODES.includes(store.get("keys", "click")) ? store.get("keys", "click") : "click";
+  // typing sound: one fixed voice (the picker was removed; the other voices stay in keySound for later)
+  const keyMode = "click";
   let hitOn = store.get("hits", true);
   let noiseB = null;
   function noiseSrc(c) {
@@ -502,7 +502,7 @@
   const PENTA = [0, 2, 4, 7, 9];
   let pianoStep = 5;
   function keySound(kind) {
-    if (keyMode === "off") return;
+    if (!hitOn) return;
     const c = getCtx();
     if (!c) return;
     const t = c.currentTime, r = Math.random(), sp = kind === "space", bk = kind === "back", en = kind === "enter";
@@ -546,14 +546,6 @@
     n.connect(bq); envTo(c, bq, t, 0.2, 0.55, 0.15);
     n.start(t); n.stop(t + 0.6);
   }
-  function setKeyMode(m) { keyMode = m; store.set("keys", m); renderSoundPicker(); keySound("key"); toast("keyboard sound: " + m); }
-  function cycleKeyMode() { setKeyMode(KEY_MODES[(KEY_MODES.indexOf(keyMode) + 1) % KEY_MODES.length]); }
-  function renderSoundPicker() {
-    const el = $("#keySound");
-    if (!el) return;
-    el.innerHTML = `<span>keyboard sound</span>` + KEY_MODES.map((m) => `<button data-km="${m}" class="${m === keyMode ? "on" : ""}">${m}</button>`).join("");
-  }
-  document.addEventListener("click", (e) => { const b = e.target.closest("[data-km]"); if (b) setKeyMode(b.dataset.km); });
 
   /* ---------------- score / accuracy / mods ---------------- */
   const stats = { n300: 0, n100: 0, n50: 0, miss: 0, score: 0, maxCombo: 0, t0: Date.now(), seen: new Set(), mods: new Set() };
@@ -647,9 +639,7 @@
     { t: "toggle effects", f: "fx", run: toggleFx, on: () => fxOn },
     { t: "fps counter", f: "f", run: () => setFps(!fpsOn), on: () => fpsOn, keep: true },
     ...Object.keys(MODS).map((m) => ({ t: `mod ${m} · ${MODS[m]}`, f: m, run: () => toggleMod(m), on: () => mods.has(m), keep: true })),
-    { t: () => `keyboard sound: ${keyMode} (cycle)`, f: "keys", run: cycleKeyMode, keep: true },
-    { t: "hit sounds", f: "sfx", run: () => { hitOn = !hitOn; store.set("hits", hitOn); toast("hit sounds " + (hitOn ? "on" : "off")); }, on: () => hitOn, keep: true },
-    { t: "show my results", f: "results", run: () => go("results") },
+    { t: "sound effects (hits + typing)", f: "sfx", run: () => { hitOn = !hitOn; store.set("hits", hitOn); toast("sound effects " + (hitOn ? "on" : "off")); }, on: () => hitOn, keep: true },
     { t: "copy email", f: "email", run: () => (has(C.email) ? copy(C.email, "email") : toast("email not set yet")) },
     { t: "copy discord username", f: "discord", run: () => copy(C.discord?.username, "discord username") },
     { t: "open github", f: "↗", run: () => window.open(`https://github.com/${C.github}`, "_blank", "noopener") },
@@ -866,9 +856,33 @@
 
   // about
   (() => {
+    const photo = C.photo && (safeUrl(C.photo) || /^[\w./-]+\.(png|jpe?g|webp|gif|avif)$/i.test(C.photo)) ? C.photo : has(C.github) ? `https://github.com/${encodeURIComponent(C.github)}.png?size=320` : "";
+    const img = $("#aboutPhoto");
+    if (photo) img.src = photo; else img.parentElement.classList.add("empty");
+    $("#aboutDot").className = "st " + ((C.availability || {}).status || "");
+    $("#aboutName").textContent = C.name || "";
+    $("#aboutHandle").textContent = has(C.handle) ? "@" + C.handle : "";
+    $("#aboutTags").innerHTML = [C.pronouns, C.location, (C.hexoro || {}).name && `${C.hexoro.name}${has(C.hexoro.role) ? " · " + C.hexoro.role : ""}`]
+      .filter(has).map((t) => `<span>${esc(t)}</span>`).join("") || todo("pronouns / location");
     const paras = (C.about || []).filter(has);
-    $("#aboutText").innerHTML = paras.length ? paras.map((p) => `<p>${esc(p)}</p>`).join("") : `<p>${todo("about — write a few paragraphs in config.js → about")}</p>`;
-    $("#facts tbody").innerHTML = (C.facts || []).map(([k, v]) => `<tr><td>${esc(k)}</td><td>${or(v)}</td></tr>`).join("");
+    const intro = has(C.intro) ? `<p class="about-intro">${mdInline(C.intro)}</p>` : C.showTodos !== false ? `<p class="about-intro">${todo("intro — one bold line about you")}</p>` : "";
+    const todoParas = (C.about || []).length ? (C.about || []).map((p, i) => (has(p) ? `<p>${mdInline(p)}</p>` : C.showTodos !== false ? `<p>${todo(["who you are", "what you do / study", "how you got here", "outside of all that"][i] || "another paragraph")}</p>` : "")).join("") : "";
+    $("#aboutText").innerHTML = intro + (paras.length || C.showTodos !== false ? todoParas : `<p>${todo("about — write a few paragraphs in config.js → about")}</p>`);
+    const H = C.hexoro || {};
+    $("#facts tbody").innerHTML = (C.facts || [])
+      .map(([k, v]) => `<tr><td>${esc(k)}</td><td>${has(H.name) && v === H.name ? `<a href="#hexoro" data-nav>${esc(v)}</a>` : or(v)}</td></tr>`)
+      .join("");
+    const ask = (C.askMeAbout || []);
+    $("#askMe").innerHTML = ask.map((t) => (has(t) ? `<a class="ask" href="#contact" data-nav data-ask="${esc(t)}">${esc(t)}</a>` : C.showTodos !== false ? `<span class="ask ask-todo">${todo("topic")}</span>` : "")).join("") || todo("askMeAbout");
+    // clicking a topic jumps to the form with it pre-written
+    document.addEventListener("click", (e) => {
+      const a = e.target.closest("[data-ask]");
+      if (!a) return;
+      const m = $("#cfMsg");
+      if (m && !m.value.trim()) { m.value = `hey! i wanted to ask you about ${a.dataset.ask}: `; m.dispatchEvent(new Event("input")); }
+    });
+    const j = C.journey || [];
+    $("#journey").innerHTML = j.map((x) => `<li data-reveal><span class="mono">${or(x.when, "when")}</span><span>${or(x.text)}</span></li>`).join("") || `<li>${todo("journey")}</li>`;
   })();
 
   // now
@@ -1021,6 +1035,39 @@
     });
   })();
 
+  // hexoro — organization card (the full company page lives at /hexoro/)
+  (async () => {
+    const H = C.hexoro || {};
+    const el = $("#hexoroCard");
+    if (!el) return;
+    const name = H.name || "Hexoro", org = H.github || "";
+    const focus = (H.focus || []).map((f) => f.title).filter(has);
+    el.innerHTML = `
+      <div class="hx-card-l">
+        <img class="hx-card-logo" src="assets/hexoro/logo.svg" alt="${esc(name)} logo" width="120" height="120">
+        <div>
+          <div class="hx-card-name">${esc(name)}</div>
+          <div class="mono dim small">${has(H.role) ? esc(H.role) + " · " : ""}${esc(C.name || "")}</div>
+        </div>
+      </div>
+      <div class="hx-card-r">
+        <p class="lead" id="hxCardTag">${has(H.tagline) ? esc(H.tagline) : todo("hexoro.tagline — one line: what Hexoro is")}</p>
+        ${has((H.about || [])[0]) ? `<p class="dim">${mdInline(H.about[0])}</p>` : ""}
+        <div class="ask-chips">${focus.length ? focus.map((f) => `<span class="ask">${esc(f)}</span>`).join("") : todo("hexoro.focus — what Hexoro does")}</div>
+        <div class="hx-card-stats mono" id="hxCardStats"></div>
+        <div class="dc-actions">
+          <a class="btn btn-hi" href="hexoro/">open the ${esc(name)} page →</a>
+          ${org ? `<a class="btn" href="https://github.com/${esc(org)}" target="_blank" rel="noopener">github.com/${esc(org)} ↗</a>` : ""}
+        </div>
+      </div>`;
+    if (!org) return;
+    try {
+      const o = await gh(`/orgs/${encodeURIComponent(org)}`);
+      if (!has(H.tagline) && has(o.description)) $("#hxCardTag").textContent = o.description;
+      $("#hxCardStats").innerHTML = `<span>${o.public_repos ?? 0} public repos</span><span>${o.followers ?? 0} ${o.followers === 1 ? "follower" : "followers"}</span>${o.created_at ? `<span>on github since ${new Date(o.created_at).getFullYear()}</span>` : ""}`;
+    } catch { /* card still works without live data */ }
+  })();
+
   // embedded pages are mounted only while near the viewport and taken out when far away:
   // a live site in an iframe keeps animating (and costing frames) even when scrolled off
   const frameIO = new IntersectionObserver((ents) => ents.forEach((e) => {
@@ -1154,11 +1201,6 @@
       : `<tr><td colspan="4">${todo("add to config.js → library")}</td></tr>`;
   })();
 
-  // principles
-  (() => {
-    $("#principlesList").innerHTML = (C.principles || []).map((p) => `<li data-reveal><span>${or(p, "a principle you live by")}</span></li>`).join("");
-  })();
-
   // media (YouTube)
   (() => {
     const Y = C.youtube || {};
@@ -1174,62 +1216,221 @@
     else bodyEl.innerHTML = `<div class="placeholder">▶ channel coming soon<br>${todo("youtube.channelId or youtube.featured in config.js")}</div>`;
   })();
 
-  // discord
+  // discord — a real profile card: live over Lanyard's websocket (status, custom status,
+  // activities with ticking timers, Spotify with album art, platforms), plus a live server card
   (() => {
     const D = C.discord || {};
     const card = $("#dcCard"), server = $("#dcServer");
+    const isId = (v) => /^\d{15,22}$/.test(String(v || "").trim());
     const uid = String(D.userId || "").trim();
-    const profile = /^\d{15,22}$/.test(uid) ? `https://discord.com/users/${uid}` : "https://discord.com";
+    const profile = isId(uid) ? `https://discord.com/users/${uid}` : "https://discord.com/app";
+    const uname = D.username || "";
     card.innerHTML = `
-      <div class="panel-head mono"><span>presence</span><span class="dim" id="dcLive">${/^\d{15,22}$/.test(uid) ? "connecting…" : "static"}</span></div>
-      <div class="dc-top">
-        <div class="dc-av" id="dcAv">${esc((D.username || "?")[0].toUpperCase())}<i class="st" id="dcSt"></i></div>
-        <div><div class="dc-name">${or(D.username, "username")}</div><div class="mono dim small" id="dcStatus">${/^\d{15,22}$/.test(uid) ? "…" : todo("discord.userId → enables live status")}</div></div>
-      </div>
-      <div class="dc-act" id="dcAct">find me on discord — say hi, i don't bite.</div>
-      <div class="dc-actions">
-        <button class="btn btn-hi" id="dcCopy">copy username</button>
-        <a class="btn" href="${esc(profile)}" target="_blank" rel="noopener">open discord ↗</a>
+      <div class="dc-banner" aria-hidden="true"><i></i><i></i><i></i></div>
+      <div class="dc-body">
+        <div class="dc-top">
+          <div class="dc-av" id="dcAv"><span>${esc((uname || "?")[0].toUpperCase())}</span><i class="st offline" id="dcSt" title="offline"></i></div>
+          <div class="dc-plat mono" id="dcPlat"></div>
+        </div>
+        <div class="dc-name" id="dcName">${or(D.displayName || uname, "display name")}</div>
+        <div class="dc-handle mono"><span id="dcUser">${has(uname) ? "@" + esc(uname) : todo("discord.username")}</span><span class="dc-tag" id="dcTag" hidden></span></div>
+        <div class="dc-custom" id="dcCustom" hidden></div>
+        <div class="dc-sep"></div>
+        ${has(D.about) ? `<div class="dc-label mono">about me</div><p class="dc-about">${mdInline(D.about)}</p>` : ""}
+        <div class="dc-label mono" id="dcActLabel">${isId(uid) ? "status" : "live status"}</div>
+        <div id="dcActs"><div class="dc-act">${isId(uid) ? `<span class="dim">connecting to lanyard<span class="dots"></span></span>` : `${todo("discord.userId in config.js → live status, activities & spotify (and join discord.gg/lanyard once)")}`}</div></div>
+        <div class="dc-actions">
+          <button class="btn btn-hi" id="dcCopy">copy username</button>
+          <a class="btn" href="${esc(profile)}" target="_blank" rel="noopener">${isId(uid) ? "open profile ↗" : "open discord ↗"}</a>
+        </div>
+        <div class="dc-foot mono dim" id="dcLive">${isId(uid) ? "connecting…" : "not connected"}</div>
       </div>`;
-    $("#dcCopy").addEventListener("click", () => copy(D.username, "discord username"));
+    $("#dcCopy").addEventListener("click", () => copy(uname, "discord username"));
 
+    /* ---------- server card ---------- */
     const sid = String(D.serverId || "").trim();
     const inv = safeUrl(D.serverInvite);
-    let s = `<div class="panel-head mono"><span>server</span>${inv ? `<a href="${esc(inv)}" target="_blank" rel="noopener">join →</a>` : ""}</div>`;
-    if (/^\d{15,22}$/.test(sid)) s += `<iframe class="dc-widget" src="https://discord.com/widget?id=${sid}&theme=dark" title="Discord server" sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts" loading="lazy"></iframe>`;
-    else s += `<div class="placeholder">${inv ? `<a class="btn btn-hi" href="${esc(inv)}" target="_blank" rel="noopener">join the server</a><br><br>` : ""}${todo("discord.serverId / serverInvite in config.js")}</div>`;
-    server.innerHTML = s;
+    const invCode = (inv.match(/(?:discord\.gg|discord(?:app)?\.com\/invite)\/([\w-]+)/i) || [])[1] || "";
+    const head = (right) => `<div class="panel-head mono"><span>server</span>${right || ""}</div>`;
+    const joinBtn = (href) => (href ? `<a class="btn btn-hi" href="${esc(href)}" target="_blank" rel="noopener">join the server ↗</a>` : "");
+    const serverCard = ({ name, icon, online, members, avatars, invite }) => `
+      ${head(`<span class="dim">${online != null ? `<i class="st online"></i> live` : ""}</span>`)}
+      <div class="dsv-top">
+        <div class="dsv-icon">${icon ? `<img alt="" src="${esc(icon)}" loading="lazy">` : esc((name || "?")[0].toUpperCase())}</div>
+        <div><div class="dsv-name">${esc(name || "server")}</div>
+          <div class="dsv-counts mono">${online != null ? `<span><i class="st online"></i>${online.toLocaleString()} online</span>` : ""}${members != null ? `<span><i class="st offline"></i>${members.toLocaleString()} members</span>` : ""}</div></div>
+      </div>
+      ${avatars && avatars.length ? `<div class="dc-label mono">online now</div><ul class="dsv-members">${avatars.map((m) => `<li title="${esc(m.name)}"><img alt="" src="${esc(m.img)}" loading="lazy"><i class="st ${esc(m.status)}"></i><span>${esc(m.name)}</span></li>`).join("")}</ul>` : ""}
+      <div class="dc-actions">${joinBtn(invite || inv)}</div>`;
+    async function loadServer() {
+      if (isId(sid)) {
+        // public widget JSON (Server Settings → Widget → Enable Server Widget)
+        try {
+          const r = await fetch(`https://discord.com/api/guilds/${sid}/widget.json`);
+          if (!r.ok) throw new Error(r.status === 403 ? "widget disabled" : "HTTP " + r.status);
+          const w = await r.json();
+          server.innerHTML = serverCard({
+            name: w.name, online: w.presence_count, invite: w.instant_invite,
+            avatars: (w.members || []).slice(0, 14).map((m) => ({ name: m.username, img: m.avatar_url, status: m.status })),
+          });
+          return;
+        } catch (e) {
+          if (!invCode) { server.innerHTML = `${head()}<div class="placeholder">couldn't read the server widget (${esc(e.message)})<br>${todo("Server Settings → Widget → enable")}</div>`; return; }
+        }
+      }
+      if (invCode) {
+        // invite lookup: server name, icon and member counts, no setup needed
+        try {
+          const r = await fetch(`https://discord.com/api/v10/invites/${encodeURIComponent(invCode)}?with_counts=true`);
+          if (!r.ok) throw new Error("HTTP " + r.status);
+          const j = await r.json();
+          const g = j.guild || {};
+          server.innerHTML = serverCard({
+            name: g.name, members: j.approximate_member_count, online: j.approximate_presence_count,
+            icon: g.icon ? `https://cdn.discordapp.com/icons/${g.id}/${g.icon}.webp?size=128` : "",
+          });
+          return;
+        } catch { /* fall through to the plain card */ }
+        server.innerHTML = `${head()}<div class="placeholder">${joinBtn(inv)}</div>`;
+        return;
+      }
+      server.innerHTML = `${head()}<div class="placeholder">no server linked yet<br>${todo("discord.serverInvite (e.g. https://discord.gg/xxxx) and/or discord.serverId in config.js")}</div>`;
+    }
+    loadServer();
 
-    if (!/^\d{15,22}$/.test(uid)) return;
-    const label = { online: "online", idle: "idle", dnd: "do not disturb", offline: "offline" };
+    if (!isId(uid)) return;
+
+    /* ---------- live presence ---------- */
+    const STATUS = { online: "online", idle: "idle", dnd: "do not disturb", offline: "offline" };
+    const VERB = { 0: "playing", 1: "streaming", 2: "listening to", 3: "watching", 5: "competing in" };
+    const asset = (a, app) => {
+      if (!a) return "";
+      if (a.startsWith("mp:")) return "https://media.discordapp.net/" + a.slice(3);
+      if (a.startsWith("spotify:")) return "https://i.scdn.co/image/" + a.slice(8);
+      return app ? `https://cdn.discordapp.com/app-assets/${app}/${a}.png` : "";
+    };
+    const clock = (ms) => { const s = Math.max(0, Math.floor(ms / 1000)), h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), x = String(s % 60).padStart(2, "0"); return h ? `${h}:${String(m).padStart(2, "0")}:${x}` : `${m}:${x}`; };
+    let last = null, tickT = 0, visible = false;
+
+    function render(d) {
+      last = d;
+      const u = d.discord_user || {};
+      const st = d.discord_status || "offline";
+      $("#dcSt").className = "st " + st;
+      $("#dcSt").title = STATUS[st] || st;
+      $("#dcName").textContent = u.global_name || u.display_name || D.displayName || u.username || uname;
+      $("#dcUser").textContent = "@" + (u.username || uname);
+      const tag = $("#dcTag"), pg = u.primary_guild;
+      if (pg && pg.tag) { tag.hidden = false; tag.textContent = pg.tag; } else tag.hidden = true;
+      const av = $("#dcAv");
+      if (u.avatar) {
+        const src = `https://cdn.discordapp.com/avatars/${uid}/${u.avatar}.${u.avatar.startsWith("a_") ? "gif" : "webp"}?size=160`;
+        let img = $("img.av", av);
+        if (!img) { av.insertAdjacentHTML("afterbegin", `<img class="av" alt="">`); img = $("img.av", av); const sp = $("span", av); if (sp) sp.hidden = true; }
+        if (img.getAttribute("src") !== src) img.src = src;
+      }
+      const deco = u.avatar_decoration_data && u.avatar_decoration_data.asset;
+      let dimg = $("img.deco", av);
+      if (deco) { if (!dimg) { av.insertAdjacentHTML("beforeend", `<img class="deco" alt="">`); dimg = $("img.deco", av); } dimg.src = `https://cdn.discordapp.com/avatar-decoration-presets/${deco}.png?size=160&passthrough=true`; }
+      else if (dimg) dimg.parentNode.removeChild(dimg);
+      $("#dcPlat").innerHTML = [["desktop", d.active_on_discord_desktop], ["mobile", d.active_on_discord_mobile], ["web", d.active_on_discord_web]]
+        .filter((p) => p[1]).map((p) => `<span>${p[0]}</span>`).join("");
+
+      const acts = d.activities || [];
+      const custom = acts.find((a) => a.type === 4);
+      const cEl = $("#dcCustom");
+      if (custom && (custom.state || custom.emoji)) {
+        const em = custom.emoji;
+        const emo = em ? (em.id ? `<img alt="" src="https://cdn.discordapp.com/emojis/${em.id}.${em.animated ? "gif" : "webp"}?size=32">` : esc(em.name || "")) : "";
+        cEl.innerHTML = `${emo}<span>${esc(custom.state || "")}</span>`;
+        cEl.hidden = false;
+      } else cEl.hidden = true;
+
+      const items = [];
+      if (d.listening_to_spotify && d.spotify) {
+        const s = d.spotify;
+        items.push(`<div class="dc-act dc-rich" data-start="${s.timestamps?.start || ""}" data-end="${s.timestamps?.end || ""}">
+          <div class="dc-art">${s.album_art_url ? `<img alt="" src="${esc(s.album_art_url)}" loading="lazy">` : "♪"}</div>
+          <div class="dc-meta"><div class="dc-kind mono">listening to spotify</div>
+            <a class="dc-title" href="https://open.spotify.com/track/${esc(s.track_id || "")}" target="_blank" rel="noopener">${esc(s.song)}</a>
+            <div class="dim small">by ${esc(s.artist)}</div><div class="dim small">on ${esc(s.album)}</div>
+            <div class="dc-bar"><span></span></div><div class="dc-times mono"><span class="t0"></span><span class="t1"></span></div></div></div>`);
+      }
+      for (const a of acts) {
+        if (a.type === 4 || (a.type === 2 && a.name === "Spotify" && d.listening_to_spotify)) continue;
+        const big = asset(a.assets?.large_image, a.application_id), small = asset(a.assets?.small_image, a.application_id);
+        items.push(`<div class="dc-act dc-rich" data-start="${a.timestamps?.start || ""}" data-end="${a.timestamps?.end || ""}">
+          <div class="dc-art">${big ? `<img alt="${esc(a.assets?.large_text || "")}" src="${esc(big)}" loading="lazy">` : "▶"}${small ? `<img class="sm" alt="" src="${esc(small)}" loading="lazy">` : ""}</div>
+          <div class="dc-meta"><div class="dc-kind mono">${VERB[a.type] || "doing"}</div><div class="dc-title">${esc(a.name)}</div>
+            ${a.details ? `<div class="dim small">${esc(a.details)}</div>` : ""}${a.state ? `<div class="dim small">${esc(a.state)}</div>` : ""}
+            <div class="dc-elapsed mono small"></div></div></div>`);
+      }
+      $("#dcActLabel").textContent = items.length ? "activity" : "status";
+      $("#dcActs").innerHTML = items.length ? items.join("") : `<div class="dc-act">${st === "offline" ? "offline right now. leave a message and i'll see it later." : `${STATUS[st]}. say hi.`}</div>`;
+      tick();
+    }
+    function tick() {
+      $$(".dc-rich", card).forEach((el) => {
+        const s = +el.dataset.start, e = +el.dataset.end, now = Date.now();
+        if (s && e) {
+          const bar = $(".dc-bar span", el);
+          if (bar) bar.style.transform = `scaleX(${Math.min(1, (now - s) / (e - s)).toFixed(4)})`;
+          const t0 = $(".t0", el), t1 = $(".t1", el);
+          if (t0) { t0.textContent = clock(now - s); t1.textContent = clock(e - s); }
+          const el2 = $(".dc-elapsed", el); if (el2) el2.textContent = clock(e - now) + " left";
+        } else if (s) { const el2 = $(".dc-elapsed", el); if (el2) el2.textContent = clock(now - s) + " elapsed"; }
+      });
+    }
+    new IntersectionObserver(([e]) => {
+      visible = e.isIntersecting;
+      clearInterval(tickT);
+      if (visible) tickT = setInterval(tick, 1000);
+    }).observe(card);
+
+    const setLive = (t) => ($("#dcLive").textContent = t);
+    const notTracked = () => {
+      $("#dcActs").innerHTML = `<div class="dc-act">${todo("join discord.gg/lanyard once so lanyard can see your presence")}</div>`;
+      setLive("lanyard isn't tracking this account yet");
+    };
+    // REST fallback (also used if the websocket can't connect)
+    let pollT = 0;
     async function poll() {
       try {
         const r = await fetch(`https://api.lanyard.rest/v1/users/${uid}`);
         const j = await r.json();
-        if (!j.success) throw new Error(j.error?.message || "not tracked");
-        const d = j.data;
-        $("#dcSt").className = "st " + d.discord_status;
-        $("#dcStatus").textContent = label[d.discord_status] || d.discord_status;
-        $("#dcLive").textContent = "live · lanyard";
-        if (d.discord_user?.avatar) {
-          const av = $("#dcAv");
-          if (!$("img", av)) av.insertAdjacentHTML("afterbegin", `<img alt="" src="https://cdn.discordapp.com/avatars/${uid}/${esc(d.discord_user.avatar)}.png?size=128">`);
-          [...av.childNodes].forEach((nd) => nd.nodeType === 3 && nd.remove());
-        }
-        const act = $("#dcAct");
-        const custom = (d.activities || []).find((a) => a.type === 4);
-        const game = (d.activities || []).find((a) => a.type === 0);
-        if (d.listening_to_spotify && d.spotify) act.innerHTML = `♪ listening to <b>${esc(d.spotify.song)}</b> by ${esc(d.spotify.artist)}`;
-        else if (game) act.innerHTML = `▶ playing <b>${esc(game.name)}</b>${game.details ? " — " + esc(game.details) : ""}`;
-        else if (custom && custom.state) act.textContent = custom.state;
-      } catch (e) {
-        $("#dcLive").textContent = "offline data";
-        $("#dcStatus").innerHTML = todo("join discord.gg/lanyard to enable live status");
-        return;
-      }
-      setTimeout(poll, 30000);
+        if (!j.success) { notTracked(); return; }
+        render(j.data);
+        setLive("live · polling every 30s");
+      } catch { setLive("couldn't reach lanyard"); }
+      clearTimeout(pollT);
+      pollT = setTimeout(poll, 30000);
     }
-    poll();
+    let tries = 0;
+    function connect() {
+      let ws, hb = 0, gotData = false;
+      try { ws = new WebSocket("wss://api.lanyard.rest/socket"); } catch { poll(); return; }
+      ws.onmessage = (ev) => {
+        let m; try { m = JSON.parse(ev.data); } catch { return; }
+        if (m.op === 1) {
+          ws.send(JSON.stringify({ op: 2, d: { subscribe_to_id: uid } }));
+          hb = setInterval(() => ws.readyState === 1 && ws.send(JSON.stringify({ op: 3 })), m.d.heartbeat_interval);
+        } else if (m.op === 0 && (m.t === "INIT_STATE" || m.t === "PRESENCE_UPDATE")) {
+          const d = m.d && m.d.discord_user ? m.d : m.d && m.d[uid];
+          if (!d || !d.discord_user) { if (!gotData) { ws.close(); poll(); } return; }
+          gotData = true; tries = 0;
+          clearTimeout(pollT);
+          render(d);
+          setLive("live · realtime");
+        }
+      };
+      ws.onclose = () => {
+        clearInterval(hb);
+        if (!gotData && tries === 0) { tries++; poll(); return; } // not tracked or blocked → REST tells us which
+        if (gotData) { setLive("reconnecting…"); setTimeout(connect, Math.min(30000, 2000 * ++tries)); }
+      };
+      ws.onerror = () => ws.close();
+    }
+    connect();
   })();
 
   // log
@@ -1246,21 +1447,115 @@
       : `<div class="placeholder">${todo("no posts yet")}</div>`;
   })();
 
-  // guestbook (giscus)
+  // log → live public GitHub activity (no setup; cached 10 min)
+  (async () => {
+    const el = $("#ghFeed");
+    if (!el || !has(C.github)) return;
+    const user = C.github;
+    $("#ghUser").textContent = user;
+    $("#ghUserLink").href = `https://github.com/${encodeURIComponent(user)}`;
+    const repoLink = (r) => `<a href="https://github.com/${esc(r)}" target="_blank" rel="noopener">${esc(r)}</a>`;
+    const line = (e) => {
+      const p = e.payload || {}, r = e.repo && e.repo.name;
+      switch (e.type) {
+        case "PushEvent": { const n = p.size || (p.commits || []).length; const msg = (p.commits || []).slice(-1)[0]; return ["push", `pushed ${n ? n + " commit" + (n > 1 ? "s" : "") + " " : ""}to ${repoLink(r)}${msg ? ` <span class="dim">— ${esc(String(msg.message).split("\n")[0].slice(0, 80))}</span>` : ""}`]; }
+        case "CreateEvent": return ["new", p.ref_type === "repository" ? `created ${repoLink(r)}` : `created ${esc(p.ref_type)} <code>${esc(p.ref || "")}</code> in ${repoLink(r)}`];
+        case "WatchEvent": return ["star", `starred ${repoLink(r)}`];
+        case "ForkEvent": return ["fork", `forked ${repoLink(r)}`];
+        case "PublicEvent": return ["new", `made ${repoLink(r)} public`];
+        case "ReleaseEvent": return ["ship", `released <b>${esc(p.release?.name || p.release?.tag_name || "")}</b> in ${repoLink(r)}`];
+        case "PullRequestEvent": return ["pr", `${esc(p.action)} a pull request in ${repoLink(r)}${p.pull_request?.title ? ` <span class="dim">— ${esc(p.pull_request.title.slice(0, 80))}</span>` : ""}`];
+        case "IssuesEvent": return ["issue", `${esc(p.action)} an issue in ${repoLink(r)}${p.issue?.title ? ` <span class="dim">— ${esc(p.issue.title.slice(0, 80))}</span>` : ""}`];
+        case "IssueCommentEvent": return ["talk", `commented in ${repoLink(r)}`];
+        default: return null;
+      }
+    };
+    try {
+      const evs = await gh(`/users/${encodeURIComponent(user)}/events/public?per_page=40`);
+      const rows = [...evs].sort((a, b) => String(b.created_at).localeCompare(String(a.created_at))).map((e) => [e, line(e)]).filter((x) => x[1]).slice(0, 10);
+      el.innerHTML = rows.length
+        ? rows.map(([e, [k, html]]) => `<li><span class="gf-k mono">${k}</span><span class="gf-t">${html}</span><span class="gf-w mono">${esc(ago(e.created_at))}</span></li>`).join("")
+        : `<li class="dim">nothing public in the last 90 days</li>`;
+    } catch (err) {
+      el.innerHTML = `<li class="dim">couldn't load activity (${esc(err.message)})</li>`;
+    }
+  })();
+
+  // guestbook — works with no setup: entries are GitHub issues made from the guestbook issue
+  // form (.github/ISSUE_TEMPLATE/guestbook.yml). Visitors write here (with the typing feel),
+  // then sign on GitHub. Close an issue to hide an entry. giscus is used instead if configured.
   (() => {
     const G = C.giscus || {};
     const boxEl = $("#giscusBox");
-    if (![G.repo, G.repoId, G.category, G.categoryId].every(has)) {
-      boxEl.innerHTML = `<div class="placeholder">guestbook opening soon<br>${todo("enable Discussions on the repo, install github.com/apps/giscus, then fill config.js → giscus (values from giscus.app)")}</div>`;
+    if ([G.repo, G.repoId, G.category, G.categoryId].every(has)) {
+      const s = document.createElement("script");
+      s.src = "https://giscus.app/client.js";
+      Object.entries({ repo: G.repo, "repo-id": G.repoId, category: G.category, "category-id": G.categoryId, mapping: "specific", term: "guestbook", "reactions-enabled": "1", "emit-metadata": "0", "input-position": "top", theme: "transparent_dark", lang: "en", loading: "lazy" })
+        .forEach(([k, v]) => s.setAttribute("data-" + k, v));
+      s.crossOrigin = "anonymous";
+      s.async = true;
+      boxEl.appendChild(s);
       return;
     }
-    const s = document.createElement("script");
-    s.src = "https://giscus.app/client.js";
-    Object.entries({ repo: G.repo, "repo-id": G.repoId, category: G.category, "category-id": G.categoryId, mapping: "specific", term: "guestbook", "reactions-enabled": "1", "emit-metadata": "0", "input-position": "top", theme: "transparent_dark", lang: "en", loading: "lazy" })
-      .forEach(([k, v]) => s.setAttribute("data-" + k, v));
-    s.crossOrigin = "anonymous";
-    s.async = true;
-    boxEl.appendChild(s);
+    const repo = (C.guestbook && C.guestbook.repo) || "";
+    if (!/^[\w.-]+\/[\w.-]+$/.test(repo)) { boxEl.innerHTML = `<div class="placeholder">${todo("guestbook.repo in config.js, e.g. \"Ahmadhussain0033/Ahmadhussain0033\"")}</div>`; return; }
+    boxEl.classList.add("gb");
+    boxEl.innerHTML = `
+      <form class="gb-form" id="gbForm">
+        <div class="panel-head mono"><span>$ sign --guestbook</span><span class="dim">signed with github</span></div>
+        <div class="field"><label for="gbName">name / alias</label><input id="gbName" type="text" maxlength="60" autocomplete="nickname" placeholder="anonymous"></div>
+        <div class="field"><label for="gbFrom">where are you from? <span class="dim">— optional</span></label><input id="gbFrom" type="text" maxlength="60"></div>
+        <div class="field"><label for="gbMsg">your note</label><textarea id="gbMsg" rows="4" maxlength="600" required placeholder="say hi, leave a thought, ask a question…"></textarea>
+          <div class="field-row"><span class="err mono" id="gbErr"></span><span class="mono dim" id="gbCount">0 / 600</span></div></div>
+        <div class="cf-actions"><button class="btn btn-hi" type="submit">sign on github →</button><span class="mono dim small">opens github with your note filled in, you just press submit</span></div>
+      </form>
+      <div class="gb-wall">
+        <div class="panel-head mono"><span id="gbHead">the wall</span><a href="https://github.com/${esc(repo)}/issues?q=is%3Aissue+is%3Aopen+label%3Aguestbook" target="_blank" rel="noopener">all entries →</a></div>
+        <ul class="gb-list" id="gbList"><li class="dim mono">reading the wall<span class="dots"></span></li></ul>
+      </div>`;
+    const msg = $("#gbMsg"), cnt = $("#gbCount");
+    msg.addEventListener("input", () => (cnt.textContent = `${msg.value.length} / 600`));
+    $("#gbForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const text = msg.value.trim();
+      if (text.length < 2) { $("#gbErr").textContent = "write a little something first"; msg.focus(); return; }
+      $("#gbErr").textContent = "";
+      const name = $("#gbName").value.trim() || "hello";
+      const q = new URLSearchParams({ template: "guestbook.yml", title: `[guestbook] ${name}`, message: text, from: $("#gbFrom").value.trim() });
+      window.open(`https://github.com/${repo}/issues/new?${q}`, "_blank", "noopener");
+      toast("finish signing on github ↗");
+    });
+
+    // issue-form bodies look like "### heading\n\nanswer\n\n### heading …"
+    const field = (body, name) => {
+      const parts = String(body || "").split(/^###\s+/m);
+      const hit = parts.find((p) => p.toLowerCase().startsWith(name));
+      if (!hit) return "";
+      const v = hit.slice(hit.indexOf("\n") + 1).trim();
+      return /^_no response_$/i.test(v) ? "" : v;
+    };
+    (async () => {
+      const list = $("#gbList");
+      try {
+        const issues = await gh(`/repos/${repo}/issues?state=open&per_page=100`);
+        const entries = issues.filter((i) => !i.pull_request && ((i.labels || []).some((l) => l.name === "guestbook") || /^\[guestbook\]/i.test(i.title)));
+        $("#gbHead").textContent = `the wall · ${entries.length} ${entries.length === 1 ? "signature" : "signatures"}`;
+        if (!entries.length) { list.innerHTML = `<li class="gb-empty">no signatures yet. be the first one on the wall.</li>`; return; }
+        list.innerHTML = entries.slice(0, 40).map((i) => {
+          const note = field(i.body, "your note") || field(i.body, "message") || String(i.body || "").trim();
+          const from = field(i.body, "where");
+          const alias = i.title.replace(/^\[guestbook\]\s*/i, "").trim();
+          const hearts = (i.reactions && (i.reactions.heart + i.reactions["+1"])) || 0;
+          return `<li class="gb-entry" data-reveal>
+            <a href="${esc(i.user.html_url)}" target="_blank" rel="noopener"><img alt="" src="${esc(i.user.avatar_url)}&s=80" loading="lazy"></a>
+            <div><div class="gb-meta mono"><a href="${esc(i.html_url)}" target="_blank" rel="noopener"><b>${esc(alias && alias !== "hello" ? alias : i.user.login)}</b></a> <span>@${esc(i.user.login)}</span>${from ? ` <span>· ${esc(from)}</span>` : ""} <span>· ${esc(ago(i.created_at))}</span>${hearts ? ` <span class="gb-heart">♥ ${hearts}</span>` : ""}</div>
+            <p>${mdInline(note.slice(0, 600))}</p></div></li>`;
+        }).join("");
+        reveal(list);
+      } catch (err) {
+        list.innerHTML = `<li class="gb-empty">couldn't read the wall right now (${esc(err.message)}). <a href="https://github.com/${esc(repo)}/issues?q=label%3Aguestbook" target="_blank" rel="noopener">see it on github →</a></li>`;
+      }
+    })();
   })();
 
   // contact
@@ -1281,6 +1576,33 @@
     if (has(C.timezone)) { try { tf = new Intl.DateTimeFormat([], { timeZone: C.timezone, hour: "2-digit", minute: "2-digit", second: "2-digit", timeZoneName: "short" }); } catch { tf = null; } }
     if (tf) { const t = () => (lt.textContent = tf.format(new Date())); t(); setInterval(t, 1000); }
     else lt.innerHTML = todo("timezone");
+
+    // quick contact cards
+    const H = C.hexoro || {};
+    const dcUser = C.discord?.username;
+    const quick = [
+      has(dcUser) && { k: "discord", v: "@" + dcUser, act: `<button class="btn btn-hi" data-copy="${esc(dcUser)}" data-copy-label="discord username">copy</button>`, note: "usually the fastest" },
+      { k: "email", v: has(C.email) ? C.email : "", act: has(C.email) ? `<button class="btn btn-hi" data-copy="${esc(C.email)}" data-copy-label="email">copy</button><a class="btn" href="mailto:${esc(C.email)}">write ↗</a>` : "", note: "for anything longer" },
+      { k: "book a call", v: safeUrl(C.bookingUrl) ? "pick a time that works" : "", act: safeUrl(C.bookingUrl) ? `<a class="btn btn-hi" href="${esc(safeUrl(C.bookingUrl))}" target="_blank" rel="noopener">book ↗</a>` : "", note: "15–30 min, video or voice" },
+      has(H.name) && { k: H.name, v: "business & partnerships", act: `<a class="btn btn-hi" href="hexoro/#contact">contact ${esc(H.name)} →</a>`, note: "my organization" },
+      safeUrl((C.ledger || {}).site) && { k: "support", v: "back what i'm working on", act: `<a class="btn btn-hi" href="${esc(safeUrl(C.ledger.site) + "#donate")}" target="_blank" rel="noopener">support ♥</a>`, note: "every expense is public" },
+    ].filter(Boolean);
+    $("#quickContact").innerHTML = quick
+      .map((q) => `<div class="qc panel" data-reveal><div class="qc-k mono">${esc(q.k)}</div><div class="qc-v">${q.v ? esc(q.v) : todo(q.k === "email" ? "email in config.js" : "bookingUrl in config.js")}</div><div class="qc-note mono dim">${esc(q.note)}</div><div class="qc-act">${q.act}</div></div>`)
+      .join("");
+    document.addEventListener("click", (e) => { const b = e.target.closest("[data-copy]"); if (b) copy(b.dataset.copy, b.dataset.copyLabel || "text"); });
+
+    // best way to reach me / open to
+    $("#reachMe").innerHTML = (C.reachMe || []).filter((r) => has(r.via)).map((r) => `<li><b>${esc(r.via)}</b><span>${or(r.note, "why this one")}</span></li>`).join("") || `<li>${todo("reachMe")}</li>`;
+    const yes = (C.openTo || []).map((t) => `<li class="yes">${or(t, "something you're open to")}</li>`);
+    const no = (C.notOpenTo || []).filter((t) => has(t) || C.showTodos !== false).map((t) => `<li class="no">${or(t, "something you're not open to (optional)")}</li>`);
+    $("#openTo").innerHTML = yes.concat(no).join("");
+
+    // faq
+    const faq = (C.contactFaq || []).filter((x) => has(x.q) || C.showTodos !== false);
+    $("#contactFaq").innerHTML = faq.length
+      ? faq.map((x) => `<details class="faq-item" data-reveal><summary>${or(x.q, "a question people ask you")}</summary><p>${has(x.a) ? mdInline(x.a) : todo("the answer")}</p></details>`).join("")
+      : "";
 
     // socials
     $("#socials").innerHTML = (C.socials || [])
@@ -1372,7 +1694,7 @@
   // footer: last updated
   (async () => {
     const el = $("#lastUpd");
-    try { const r = await gh(`/repos/${C.github}/About-Me`); el.textContent = "updated " + ago(r.pushed_at); }
+    try { const r = await gh(`/repos/${C.github}/${C.siteRepo || C.github}`); el.textContent = "updated " + ago(r.pushed_at); }
     catch { el.textContent = ""; }
   })();
 
@@ -1473,44 +1795,11 @@
   addEventListener("scroll", () => { if (caretEl) moveCaret(); }, { passive: true });
   document.addEventListener("scroll", (e) => { if (e.target === caretEl) moveCaret(); }, true);
 
-  /* ---------------- results screen ---------------- */
-  (() => {
-    const set = (id, v) => { const el = document.getElementById(id); if (el.textContent !== String(v)) el.textContent = v; };
-    const gEl = $("#resGrade");
-    let visible = false;
-    new IntersectionObserver(([e]) => (visible = e.isIntersecting)).observe($("#results"));
-    function update() {
-      if (!visible) return;
-      const g = grade();
-      if (gEl.textContent !== g) { gEl.textContent = g; gEl.className = "grade-big g-" + g; }
-      set("resGradeNote", hitsTotal() ? `${hitsTotal()} hits judged` : "click anything to start");
-      set("resScore", String(stats.score).padStart(8, "0"));
-      set("r300", stats.n300); set("r100", stats.n100); set("r50", stats.n50); set("rMiss", stats.miss);
-      set("rAcc", (accuracy() * 100).toFixed(2) + "%");
-      set("rCombo", stats.maxCombo + "x");
-      set("rExplored", `${stats.seen.size} / ${sections.length}`);
-      const secs = Math.floor((Date.now() - stats.t0) / 1000);
-      set("rTime", `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, "0")}`);
-      const bw = Math.round(stats.bestWpm || 0);
-      set("rWpm", bw ? bw + " wpm" : "—");
-      set("rMods", stats.mods.size ? [...stats.mods].join(" ") : "none");
-    }
-    setInterval(update, 400);
-    $("#resRetry").addEventListener("click", () => {
-      Object.assign(stats, { n300: 0, n100: 0, n50: 0, miss: 0, score: 0, maxCombo: 0, t0: Date.now() });
-      stats.seen = new Set([sections[activeIdx].id]);
-      stats.mods = new Set(mods);
-      combo = 0; comboN.textContent = "0";
-      toast("retrying…");
-    });
-  })();
-
   /* ---------------- boot ---------------- */
   addEventListener("resize", resize);
   resize();
   applyMods();
   setFps(fpsOn);
-  renderSoundPicker();
   reveal();
   onScroll();
   requestAnimationFrame(loop);

@@ -1,0 +1,21 @@
+name: Sign the guestbook
+description: Leave a note on the guestbook wall at ahmadhussain0033.github.io/Ahmadhussain0033
+title: "[guestbook] "
+labels: ["guestbook"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for stopping by. Your note shows up on the guestbook wall on the site within a few minutes. Keep it kind.
+  - type: textarea
+    id: message
+    attributes:
+      label: your note
+      placeholder: say hi, leave a thought, ask a question…
+    validations:
+      required: true
+  - type: input
+    id: from
+    attributes:
+      label: where are you from?
+      description: optional

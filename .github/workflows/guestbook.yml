@@ -1,0 +1,36 @@
+# Guestbook: entries are issues created from .github/ISSUE_TEMPLATE/guestbook.yml.
+# This makes sure the "guestbook" label exists (issue forms only apply existing labels)
+# and labels entries whose title starts with "[guestbook]" even if they skipped the form.
+# The issue title is only used in an `if:` expression, never interpolated into a shell.
+name: guestbook
+
+on:
+  issues:
+    types: [opened, edited]
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/guestbook.yml"
+      - ".github/ISSUE_TEMPLATE/guestbook.yml"
+  workflow_dispatch:
+
+permissions:
+  issues: write
+
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ensure the guestbook label exists
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: gh label create guestbook --repo "$REPO" --color 4fe3ff --description "signed the guestbook on the site" || true
+
+      - name: Label guestbook entries
+        if: github.event_name == 'issues' && startsWith(github.event.issue.title, '[guestbook]')
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          NUMBER: ${{ github.event.issue.number }}
+        run: gh issue edit "$NUMBER" --repo "$REPO" --add-label guestbook

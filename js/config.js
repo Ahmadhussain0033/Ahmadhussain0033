@@ -27,18 +27,34 @@ window.SITE = {
   pronouns: "",
 
   /* ---------- about.md ---------- */
+  photo: "", // path or URL to a photo — blank uses your GitHub avatar
+  intro: "", // one bold line at the top of about, e.g. "i like finding the pattern in things"
   about: [
-    // each string = one paragraph
-    "",
-    "",
+    // each string = one paragraph. supports **bold**, *italic*, `code`, [links](https://…)
+    "", // who you are
+    "", // what you do / study
+    "", // how you got here
+    "", // outside of all that
   ],
   facts: [
     // quick facts table:  [label, value]
     ["based in", ""],
+    ["timezone", ""],
     ["languages i speak", ""],
     ["currently", ""],
+    ["studying", ""],
+    ["my organization", "Hexoro"],
     ["fuelled by", ""],
+    ["on repeat", "STRUCT — super slowed + reverb"],
     ["fun fact", ""],
+  ],
+  askMeAbout: ["information theory", "", "", ""], // chips: topics people can start a conversation with
+  journey: [
+    // a short timeline of you — { when, text }, oldest first
+    { when: "", text: "" },
+    { when: "", text: "" },
+    { when: "", text: "" },
+    { when: "2026", text: "launched this site" },
   ],
 
   /* ---------- now.md (what you're doing these days) ---------- */
@@ -131,6 +147,10 @@ window.SITE = {
     { grade: "A", title: "", detail: "", date: "", link: "" },
     { grade: "SS", title: "", detail: "", date: "", link: "" },
     { grade: "B", title: "", detail: "", date: "", link: "" },
+    { grade: "S", title: "", detail: "", date: "", link: "" },
+    { grade: "A", title: "", detail: "", date: "", link: "" },
+    { grade: "SS", title: "", detail: "", date: "", link: "" },
+    { grade: "B", title: "", detail: "", date: "", link: "" },
   ],
 
   /* ---------- toolbox.json ---------- */
@@ -149,9 +169,6 @@ window.SITE = {
     { kind: "album", title: "", by: "", note: "" },
   ],
 
-  /* ---------- principles.md ---------- */
-  principles: ["", "", ""],
-
   /* ---------- media/ (YouTube) ---------- */
   youtube: {
     url: "", // e.g. "https://youtube.com/@yourchannel"
@@ -162,9 +179,16 @@ window.SITE = {
   /* ---------- discord ---------- */
   discord: {
     username: "nerdatronic",
-    userId: "", // numeric ID → live presence via Lanyard (join discord.gg/lanyard once)
-    serverId: "", // enables the server widget (Server Settings → Widget → enable)
+    displayName: "", // shown until live data arrives (live data uses your real display name)
+    about: "", // a line for the profile card's "about me"
+    // numeric user ID → live profile card: avatar, status, custom status, activities with
+    // timers, Spotify. Discord → Settings → Advanced → Developer Mode, then right-click
+    // yourself → Copy User ID. Also join discord.gg/lanyard once (that's what makes it live).
+    userId: "",
+    // a server invite alone → server name, icon, online + member counts (no setup)
     serverInvite: "", // e.g. "https://discord.gg/xxxx"
+    // server ID + Server Settings → Widget → Enable → also shows who's online right now
+    serverId: "",
   },
 
   /* ---------- log/ (short posts) ---------- */
@@ -173,9 +197,13 @@ window.SITE = {
     { date: "2026-11-05", title: "hello, world", body: "the site is live. more soon." },
   ],
 
-  /* ---------- guestbook (giscus — github.com/apps/giscus) ---------- */
+  /* ---------- guestbook ---------- */
+  // works out of the box: notes are GitHub issues from the guestbook form in this repo.
+  // close an issue on GitHub to take an entry off the wall.
+  guestbook: { repo: "Ahmadhussain0033/Ahmadhussain0033" },
+  // optional: fill all four (from giscus.app) to use giscus discussions instead
   giscus: {
-    repo: "", // e.g. "Ahmadhussain0033/About-Me"
+    repo: "", // e.g. "Ahmadhussain0033/Ahmadhussain0033"
     repoId: "",
     category: "",
     categoryId: "",
@@ -185,19 +213,74 @@ window.SITE = {
   email: "", // the address shown + used by the copy button / mailto fallback
   availability: { status: "green", text: "open to collaborations & conversations" }, // green | yellow | red
   responseTime: "usually within 48h",
+  bookingUrl: "", // e.g. a cal.com / calendly link → "book a call" button
+  // best ways to reach you, in order — { via, note }
+  reachMe: [
+    { via: "discord", note: "" }, // e.g. "fastest, i'm on most days"
+    { via: "email", note: "" }, // e.g. "for anything longer"
+    { via: "the form below", note: "" },
+  ],
+  openTo: ["", "", ""], // e.g. "research collaborations", "talks / podcasts", "freelance"
+  notOpenTo: [""], // optional, e.g. "unpaid spec work"
+  contactFaq: [
+    // { q, a }
+    { q: "", a: "" },
+    { q: "", a: "" },
+  ],
   // https://web3forms.com → free key, messages arrive in your inbox.
   // leave blank → the form falls back to opening the visitor's email app.
   web3formsKey: "",
   socials: [
     // { label, url } — add / remove freely
     { label: "github", url: "https://github.com/Ahmadhussain0033" },
+    { label: "hexoro (my org)", url: "https://github.com/Hexoro" },
+    { label: "support (ledger)", url: "https://ahmadhussain0033.github.io/Ledger/" },
     { label: "youtube", url: "" },
     { label: "discord", url: "https://discord.com" },
     { label: "x / twitter", url: "" },
     { label: "linkedin", url: "" },
     { label: "instagram", url: "" },
     { label: "google scholar", url: "" },
+    { label: "reddit", url: "" },
+    { label: "twitch", url: "" },
+    { label: "spotify", url: "" },
   ],
+
+  /* ---------- hexoro — your organization (section here + its own page at /hexoro/) ---------- */
+  hexoro: {
+    name: "Hexoro",
+    tagline: "", // one line: what Hexoro is
+    github: "Hexoro", // github.com/Hexoro — public repos show up live
+    website: "",
+    email: "", // business contact
+    founded: "",
+    location: "",
+    role: "", // your role, e.g. "founder"
+    about: ["", ""], // paragraphs — supports **bold**, *italic*, `code`, [links](https://…)
+    // what Hexoro does — { title, blurb }
+    focus: [
+      { title: "", blurb: "" },
+      { title: "", blurb: "" },
+      { title: "", blurb: "" },
+    ],
+    // products / projects — { name, blurb, status: "done" | "doing" | "idea", link }
+    products: [
+      { name: "", blurb: "", status: "doing", link: "" },
+      { name: "", blurb: "", status: "idea", link: "" },
+    ],
+    // team — { name, role, link }
+    team: [
+      { name: "Ahmad Hussain", role: "", link: "https://ahmadhussain0033.github.io/Ahmadhussain0033/" },
+      { name: "", role: "", link: "" },
+    ],
+    values: ["", "", ""],
+    // milestones — { when, text }
+    timeline: [
+      { when: "", text: "" },
+      { when: "", text: "" },
+    ],
+    joinText: "", // e.g. "we're looking for …" — leave blank to hide the join block
+  },
 
   /* ---------- music ---------- */
   music: {

@@ -1,13 +1,12 @@
 <!-- ───────────────────────────────────────────────────────────────
-  Profile README. To use it on your GitHub profile, copy this file into
-  a repo named exactly  Ahmadhussain0033/Ahmadhussain0033 .
-  Images use absolute URLs, so they keep working from any repo.
+  Profile README: this repo is Ahmadhussain0033/Ahmadhussain0033, so GitHub
+  shows this file on the profile page. The same repo serves the site on Pages.
   Site setup docs live in SETUP.md.
 ──────────────────────────────────────────────────────────────── -->
 
 <p align="center">
-  <a href="https://ahmadhussain0033.github.io/About-Me/">
-    <img src="https://raw.githubusercontent.com/Ahmadhussain0033/About-Me/main/assets/readme/banner.svg" alt="Ahmad Hussain — aspiring information theorist" width="100%">
+  <a href="https://ahmadhussain0033.github.io/Ahmadhussain0033/">
+    <img src="https://raw.githubusercontent.com/Ahmadhussain0033/Ahmadhussain0033/main/assets/readme/banner.svg" alt="Ahmad Hussain — aspiring information theorist" width="100%">
   </a>
 </p>
 
@@ -16,20 +15,21 @@
 </p>
 
 <p align="center">
-  <a href="https://ahmadhussain0033.github.io/About-Me/"><img src="https://img.shields.io/badge/site-enter_the_signal-0a0a0b?style=for-the-badge&labelColor=f5f5f6&color=0a0a0b&logo=githubpages&logoColor=0a0a0b" alt="website"></a>
+  <a href="https://ahmadhussain0033.github.io/Ahmadhussain0033/"><img src="https://img.shields.io/badge/site-enter_the_signal-0a0a0b?style=for-the-badge&labelColor=f5f5f6&color=0a0a0b&logo=githubpages&logoColor=0a0a0b" alt="website"></a>
   <a href="https://discord.com"><img src="https://img.shields.io/badge/discord-nerdatronic-0a0a0b?style=for-the-badge&labelColor=4fe3ff&color=0a0a0b&logo=discord&logoColor=0a0a0b" alt="discord: nerdatronic"></a>
   <a href="https://ahmadhussain0033.github.io/Ledger/#donate"><img src="https://img.shields.io/badge/support-the_ledger-0a0a0b?style=for-the-badge&labelColor=6ee7a0&color=0a0a0b&logo=githubsponsors&logoColor=0a0a0b" alt="support: the ledger"></a>
   <a href="https://github.com/Ahmadhussain0033?tab=repositories"><img src="https://img.shields.io/badge/repos-browse-0a0a0b?style=for-the-badge&labelColor=d6d6da&color=0a0a0b&logo=github&logoColor=0a0a0b" alt="repositories"></a>
   <!-- todo: youtube badge → https://img.shields.io/badge/youtube-<channel>-0a0a0b?style=for-the-badge&labelColor=ff5d73&color=0a0a0b&logo=youtube&logoColor=0a0a0b -->
 </p>
 
-<img src="https://raw.githubusercontent.com/Ahmadhussain0033/About-Me/main/assets/readme/divider.svg" width="100%" alt="">
+<img src="https://raw.githubusercontent.com/Ahmadhussain0033/Ahmadhussain0033/main/assets/readme/divider.svg" width="100%" alt="">
 
 ### `$ whoami`
 
 ```python
 class Ahmad:
     handle    = "nerdatronic"
+    org       = "Hexoro"                                    # github.com/Hexoro
     roles     = ["aspiring information theorist", "researcher", "a bit of everything"]
     thinking  = ["information theory", "research"]        # more coming
     making    = []                                          # todo
@@ -51,6 +51,11 @@ class Ahmad:
 | ◉ | <!-- todo --> | <!-- todo --> |
 | ◉ | <!-- todo --> | <!-- todo --> |
 | ◉ | <!-- todo --> | <!-- todo --> |
+
+### `~/hexoro`
+
+> My organization. **[the Hexoro page →](https://ahmadhussain0033.github.io/Ahmadhussain0033/hexoro/)** · [github.com/Hexoro](https://github.com/Hexoro)
+<!-- todo: one line on what Hexoro is -->
 
 ### `~/ledger`
 
@@ -76,30 +81,32 @@ class Ahmad:
 
 | | | |
 |:-:|---|---|
-| **SS** | **Critical vulnerability · [Compyle.ai](https://compyle.ai)** (YC F25) | Found and responsibly disclosed a critical credit-system bypass in an AI coding platform; fully remediated and formally acknowledged by the founder & CTO. <sub>Nov 2025 · [letter](https://github.com/Ahmadhussain0033/About-Me/blob/main/assets/docs/compyle-security-acknowledgment-2025.pdf)</sub> |
+| **SS** | **Critical vulnerability · [Compyle.ai](https://compyle.ai)** (YC F25) | Found and responsibly disclosed a critical credit-system bypass in an AI coding platform; fully remediated and formally acknowledged by the founder & CTO. <sub>Nov 2025 · [letter](https://github.com/Ahmadhussain0033/Ahmadhussain0033/blob/main/assets/docs/compyle-security-acknowledgment-2025.pdf)</sub> |
 | <sub>locked</sub> | <!-- todo --> | |
 
 ### `~/stats`
 
 <!-- self-hosted: regenerated every 6h by .github/workflows/readme-stats.yml (no third-party stat services) -->
 <p align="center">
-  <img src="https://raw.githubusercontent.com/Ahmadhussain0033/About-Me/main/assets/readme/streak.svg" alt="github streak" width="49%">
-  <a href="https://ahmadhussain0033.github.io/About-Me/#media"><img src="https://raw.githubusercontent.com/Ahmadhussain0033/About-Me/main/assets/readme/nowplaying.svg" alt="now playing: STRUCT" width="49%"></a>
+  <img src="https://raw.githubusercontent.com/Ahmadhussain0033/Ahmadhussain0033/main/assets/readme/streak.svg" alt="github streak" width="49%">
+  <a href="https://ahmadhussain0033.github.io/Ahmadhussain0033/#media"><img src="https://raw.githubusercontent.com/Ahmadhussain0033/Ahmadhussain0033/main/assets/readme/nowplaying.svg" alt="now playing: STRUCT" width="49%"></a>
 </p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/Ahmadhussain0033/About-Me/main/assets/readme/contrib.svg" alt="contributions in the last 12 months" width="100%">
+  <img src="https://raw.githubusercontent.com/Ahmadhussain0033/Ahmadhussain0033/main/assets/readme/contrib.svg" alt="contributions in the last 12 months" width="100%">
 </p>
 
 ### `./contact.sh`
 
 ```bash
 $ discord   nerdatronic
+$ hexoro    https://ahmadhussain0033.github.io/Ahmadhussain0033/hexoro/
+$ guestbook https://ahmadhussain0033.github.io/Ahmadhussain0033/#guestbook
 $ support   https://ahmadhussain0033.github.io/Ledger/#donate
-$ site      https://ahmadhussain0033.github.io/About-Me/#contact
+$ site      https://ahmadhussain0033.github.io/Ahmadhussain0033/#contact
 $ email     # todo
 ```
 
-<img src="https://raw.githubusercontent.com/Ahmadhussain0033/About-Me/main/assets/readme/divider.svg" width="100%" alt="">
+<img src="https://raw.githubusercontent.com/Ahmadhussain0033/Ahmadhussain0033/main/assets/readme/divider.svg" width="100%" alt="">
 
 <p align="center"><sub><code>/</code> opens the menu on my site · <code>m</code> plays the music · type anything for the sounds</sub></p>

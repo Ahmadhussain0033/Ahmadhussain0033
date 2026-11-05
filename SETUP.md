@@ -1,4 +1,4 @@
-# About-Me — site setup
+# Ahmadhussain0033 — site setup
 
 Setup notes for the personal site of **Ahmad Hussain** (`nerdatronic`): aspiring information theorist, researcher, and a little bit of everything.
 
@@ -14,17 +14,19 @@ All personal content lives in **`js/config.js`**.
 
 | Want to… | Edit in `config.js` |
 |---|---|
-| change bio, facts, now-list, interests | `about`, `facts`, `now`, `interests` |
+| change bio, facts, now-list, interests | `intro`, `about`, `facts`, `askMeAbout`, `journey`, `photo` (blank = your GitHub avatar), `now`, `interests` |
+| Hexoro (section + its own page at `/hexoro/`) | `hexoro` — tagline, about, focus, products, team, values, timeline, email. Blanks are filled from the public [github.com/Hexoro](https://github.com/Hexoro) org where it has the info (description, website, email, public repos) |
 | your thoughts on information theory (research section + README `~/thoughts.md`) | `thoughtsTitle`, `thoughts` |
 | ledger / support section | `ledger.site`, `ledger.why`, `ledger.links` (buttons that jump to sections of the ledger site) |
 | your project portfolio | `projects` (curated; nothing is pulled automatically. `featured: true` makes a card full-width) |
 | add research / papers | `research`, `papers` |
 | update roadmap / medals | `roadmap`, `achievements` (an empty `title` shows as a locked medal) |
 | feature YouTube | `youtube.channelId` (starts with `UC…`) or `youtube.featured` (a video id) |
-| live Discord status | `discord.userId` (numeric), then join [discord.gg/lanyard](https://discord.gg/lanyard) once |
-| Discord server widget | `discord.serverId` (Server Settings → Widget → enable) and/or `discord.serverInvite` |
+| live Discord profile card (status, custom status, activities with timers, Spotify) | `discord.userId` (Discord → Settings → Advanced → Developer Mode, then right-click yourself → Copy User ID), then join [discord.gg/lanyard](https://discord.gg/lanyard) once |
+| Discord server card | `discord.serverInvite` alone shows the server name, icon and online/member counts; add `discord.serverId` + Server Settings → Widget → enable to also list who's online |
 | make the contact form deliver email | free key from [web3forms.com](https://web3forms.com) → `web3formsKey` |
-| guestbook | enable Discussions, install [giscus](https://github.com/apps/giscus), copy the values from [giscus.app](https://giscus.app) → `giscus` |
+| contact extras | `email`, `bookingUrl`, `reachMe`, `openTo`, `notOpenTo`, `contactFaq`, `socials` |
+| guestbook | works out of the box: visitors write their note on the site, then sign it on GitHub (an issue from `.github/ISSUE_TEMPLATE/guestbook.yml`). The wall shows open `[guestbook]` issues; **close an issue to remove an entry**. `.github/workflows/guestbook.yml` creates and applies the `guestbook` label. Fill `giscus` instead if you'd rather use giscus discussions |
 | swap the music | drop a file in `assets/audio/` and update `music.src` |
 
 ## Keyboard
@@ -58,19 +60,15 @@ The site targets your display's full refresh rate (60, 120, 144 Hz and up). Pres
   - `NC`: nightcore
   - `FL`: flashlight
   - `AT`: autopilot, which auto-scrolls the page
-- **Ranking.** The **results** section grades the visit osu!-style:
-  - **SS**: all 300s
-  - **S**: over 90% 300s, under 1% 50s, no misses
-  - **A, B, C, D**: lower bands
-- **Typing feel.** In every text box: a smooth gliding cyan caret, synthesized key sounds (no sample files), cyan letter pops, and a live WPM counter. Pick the sound (`click`, `thock`, `typewriter`, `pop`, `piano` or `off`) under the contact form or from the `/` menu.
+- **Typing feel.** In every text box: a smooth gliding cyan caret, synthesized key sounds (no sample files), cyan letter pops, and a live WPM counter. Turn all sound effects off with `sound effects` in the `/` menu.
 
 ## Profile README
 
-`README.md` is written as a GitHub profile README. To use it on your profile:
-1. Create a repo named exactly `Ahmadhussain0033`.
-2. Copy `README.md` into it.
+This repo is named `Ahmadhussain0033/Ahmadhussain0033`, so GitHub shows `README.md` on your profile page. The same repo also serves the site:
+- site: https://ahmadhussain0033.github.io/Ahmadhussain0033/
+- Hexoro page: https://ahmadhussain0033.github.io/Ahmadhussain0033/hexoro/
 
-All images use absolute URLs, so you don't need to copy any other files.
+The old `/About-Me/` address stopped working when the repo was renamed (GitHub Pages doesn't redirect), so share the new one.
 
 To regenerate the animated SVGs in `assets/readme/` (for example, after changing the subtitle):
 - Edit the constants at the top of `tools/readme_art.py`.
@@ -89,6 +87,8 @@ css/style.css       all styling
 js/config.js        ← your content
 js/main.js          cursor, fx, audio, palette, renderers, live data
 js/scene.js         three.js space: nebula, stars, hero, gates, warp
+js/hexoro.js        the Hexoro company page
+hexoro/             Hexoro page (uses the same css, config and space scene)
 vendor/             three.js r160 (vendored, no CDN dependency)
 assets/audio/       site soundtrack
 assets/readme/      animated SVGs for the profile README
@@ -97,11 +97,11 @@ tools/              generator for those SVGs
 
 Third-party services the site uses, all called from the browser:
 - GitHub REST API (projects, ledger)
-- Lanyard (Discord presence)
-- Discord widget
+- Lanyard (Discord presence, over a websocket)
+- Discord invite + widget APIs (server card)
 - YouTube embeds
 - Web3Forms (contact form)
-- giscus (guestbook)
+- GitHub issues (guestbook; giscus optional)
 - Google Fonts
 
 ## README stats

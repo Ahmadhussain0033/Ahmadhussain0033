@@ -11,6 +11,8 @@ import * as THREE from "../vendor/three.module.min.js";
 const host = document.getElementById("space");
 const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const small = Math.min(innerWidth, innerHeight) < 700;
+// <body data-scene="lite"> (sub-pages like /hexoro/): no intro dimming, no hero centrepiece
+const lite = document.body.dataset.scene === "lite";
 
 /* ---------- performance budget ----------
    The 3D pass is drawn at a resolution chosen by a pixel budget, not blindly at the
@@ -366,11 +368,11 @@ function init() {
 
   let warp = 0, warpT = 0;
   window.__warp = () => { warpT = performance.now(); };
-  let intro = 1; // 1 = intro showing, eases to 0 on enter
+  let intro = lite ? 0 : 1; // 1 = intro showing, eases to 0 on enter
   window.__sceneEnter = () => { intro = 0; warpT = performance.now(); };
 
   const clock = new THREE.Clock();
-  let camZ = 21, beatS = 0, introK = 1, slowAvg = 0, qFrames = 0, refresh = 1 / 60, lastFov = 0;
+  let camZ = lite ? 12 : 21, beatS = 0, introK = lite ? 0 : 1, slowAvg = 0, qFrames = 0, refresh = 1 / 60, lastFov = 0;
   let lastFxOff = document.body.classList.contains("fx-off");
   let nebAt = -1, nebOff = new THREE.Vector2(); // when / where the nebula texture was last rendered
   const NEB_INTERVAL = 1 / 50; // refresh the noise ≤ 50×/s; re-projection covers the frames in between
@@ -435,7 +437,7 @@ function init() {
 
     // hero (centred behind the intro circle, then slides aside)
     const passed = Math.min(1, Math.max(0, (12 - camZ) / 9)); // 0 at top of page → 1 once the camera flies past
-    hero.visible = passed < 0.999;
+    hero.visible = !lite && passed < 0.999;
     if (hero.visible) {
       hero.position.set(heroX * (1 - introK) + passed * 7, heroY * (1 - introK) + passed * 6, -passed * 4);
       hero.scale.setScalar(heroS * (1 + beatS * 0.09));

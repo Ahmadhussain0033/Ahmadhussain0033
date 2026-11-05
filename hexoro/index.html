@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Hexoro</title>
+  <meta name="description" content="Hexoro — an organization by Ahmad Hussain." />
+  <meta name="theme-color" content="#0b0b0c" />
+  <meta property="og:title" content="Hexoro" />
+  <meta property="og:description" content="Hexoro — an organization by Ahmad Hussain." />
+  <meta property="og:type" content="website" />
+  <link rel="icon" href="../assets/hexoro/logo.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;500;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body class="hx-page" data-scene="lite">
+  <div id="space" aria-hidden="true"></div>
+
+  <header class="hx-nav mono">
+    <a class="hx-brand" href="#top" aria-label="Hexoro home"><img src="../assets/hexoro/logo.svg" alt="" width="28" height="28" /><b id="hxBrand">Hexoro</b></a>
+    <nav aria-label="Sections">
+      <a href="#about">about</a><a href="#work">what we do</a><a href="#products">products</a><a href="#open-source">open source</a><a href="#team">team</a><a href="#contact">contact</a>
+    </nav>
+    <a class="hx-back" href="../">← ahmad's site</a>
+  </header>
+
+  <main id="hx">
+    <section id="top" class="hx-hero">
+      <div class="hx-logo" aria-hidden="true"><img src="../assets/hexoro/logo.svg" alt="" /></div>
+      <div>
+        <p class="mono hx-kicker" id="hxKicker"></p>
+        <h1 class="hx-title" id="hxName">Hexoro</h1>
+        <p class="hx-tagline" id="hxTagline"></p>
+        <div class="hx-meta mono" id="hxMeta"></div>
+        <div class="hx-cta" id="hxCta"></div>
+      </div>
+    </section>
+    <section id="about" data-file="about.md" data-title="about"><div class="md hx-about" id="hxAbout"></div></section>
+    <section id="work" data-file="work.md" data-title="what we do"><div class="hx-focus" id="hxFocus"></div></section>
+    <section id="products" data-file="products/" data-title="products & projects"><div class="hx-products" id="hxProducts"></div></section>
+    <section id="open-source" data-file="github.com/Hexoro" data-title="open source"><div id="hxRepos"></div></section>
+    <section id="team" data-file="team.md" data-title="team"><div class="hx-team" id="hxTeam"></div></section>
+    <section id="story" data-file="story.md" data-title="story & values">
+      <div class="grid-2">
+        <div class="panel" data-reveal><div class="panel-head mono"><span>$ git log --reverse hexoro</span></div><ol class="journey" id="hxTimeline"></ol></div>
+        <div class="panel" data-reveal><div class="panel-head mono"><span>values</span></div><ol class="hx-values" id="hxValues"></ol></div>
+      </div>
+    </section>
+    <section id="contact" data-file="contact.sh" data-title="work with us"><div id="hxContact"></div></section>
+    <footer class="foot mono"><div><span class="dim">/*</span> <span id="hxFoot"></span> <span class="dim">*/</span></div><div><a href="../">ahmadhussain0033.github.io/Ahmadhussain0033</a></div></footer>
+  </main>
+
+  <script src="../js/config.js"></script>
+  <script src="../js/hexoro.js"></script>
+  <script type="module" src="../js/scene.js"></script>
+</body>
+</html>
