@@ -34,7 +34,19 @@ All personal content lives in **`js/config.js`**.
 | `/` or `ctrl+k` | quick-nav menu |
 | `m` | play / pause music |
 | `j` / `k` | next / previous section |
+| `f` | fps counter (fps, frame time, 3D resolution) |
 | `esc` | close menu |
+
+## Performance
+
+The site targets your display's full refresh rate (60, 120, 144 Hz and up). Press `f` to show the frame counter.
+
+- **Resolution budget.** The 3D background renders at most about 3 million pixels per frame, so 4K and retina screens don't render 4–9× the pixels. Anti-aliasing is only used on normal-density screens.
+- **Adaptive quality.** The first frames measure your refresh rate. If the site can't hold it, the 3D resolution steps down, to half at the lowest. The counter shows the current `3d res`.
+- **Cheap background.** The nebula noise refreshes at most 50× a second and is shifted smoothly in between. The film grain and cursor glow are drawn in the same shader pass, so there are no extra full-screen layers.
+- **No layout in the frame loop.** Scroll position and section positions are cached from scroll events and resize observers.
+- **Embeds load on demand.** The ledger embed loads only near the viewport and is removed when you scroll away.
+- **Still slow?** Turn effects off from the `/` menu (`toggle effects`).
 
 ## osu-style extras
 

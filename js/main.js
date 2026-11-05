@@ -174,12 +174,22 @@
   /* ---------------- scroll HUD ---------------- */
   const hp = $("#hp"), hudFile = $("#hudFile"), hudNum = $("#hudNum");
   let activeIdx = -1;
+  // section positions are measured only when the layout changes (ResizeObserver), never
+  // on scroll: getBoundingClientRect ×18 per scroll frame forced synchronous layout
+  let secTops = [], scrollMax = 1;
+  function measureSections() {
+    scrollMax = Math.max(1, root.scrollHeight - innerHeight);
+    secTops = sections.map((s) => s.getBoundingClientRect().top + scrollY);
+  }
+  new ResizeObserver(() => { measureSections(); onScroll(); }).observe(document.body);
+  addEventListener("resize", measureSections);
+  let sy = scrollY; // cached in the scroll event; reading scrollY inside rAF forced a style recalc
   function onScroll() {
-    const max = root.scrollHeight - innerHeight;
-    hp.style.width = (max > 0 ? (scrollY / max) * 100 : 0) + "%";
+    if (!secTops.length) measureSections();
+    hp.style.transform = `scaleX(${Math.min(1, sy / scrollMax).toFixed(4)})`;
     let idx = 0;
-    const line = innerHeight * 0.4;
-    sections.forEach((s, i) => { if (s.getBoundingClientRect().top <= line) idx = i; });
+    const line = sy + innerHeight * 0.4;
+    for (let i = 0; i < secTops.length; i++) if (secTops[i] <= line) idx = i;
     if (idx !== activeIdx) {
       activeIdx = idx;
       stats.seen.add(sections[idx].id);
@@ -190,6 +200,7 @@
   }
   let scrollQueued = false;
   addEventListener("scroll", () => {
+    sy = scrollY;
     if (scrollQueued) return;
     scrollQueued = true;
     requestAnimationFrame(() => { scrollQueued = false; onScroll(); });
@@ -231,7 +242,7 @@
   const fx = $("#fx"), fctx = fx.getContext("2d");
   let W = 0, H = 0, DPR = 1;
   function resize() {
-    W = innerWidth; H = innerHeight; DPR = Math.min(devicePixelRatio || 1, 2);
+    W = innerWidth; H = innerHeight; DPR = Math.min(devicePixelRatio || 1, 2); npW = 0;
     fx.width = W * DPR; fx.height = H * DPR; fctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   }
   const bursts = [], charPops = [];
@@ -269,11 +280,14 @@
   let fxDirty = true;
   function drawFx(now) {
     const busy = fxOn && (trail.length || bursts.length || charPops.length);
+    // when nothing is animating, the canvas is hidden so the compositor doesn't blend an
+    // empty full-screen layer every frame
     if (!busy) {
-      if (fxDirty) { fctx.clearRect(0, 0, W, H); fxDirty = false; }
+      if (fxDirty) { fctx.clearRect(0, 0, W, H); fxDirty = false; fx.style.visibility = "hidden"; }
       if (!fxOn) { trail.length = 0; bursts.length = 0; charPops.length = 0; }
       return;
     }
+    if (!fxDirty) fx.style.visibility = "";
     fxDirty = true;
     fctx.clearRect(0, 0, W, H);
     // trail
@@ -413,17 +427,18 @@
 
   const pBars = $$("#pViz i");
   const npViz = $("#npViz"), nctx = npViz.getContext("2d");
-  let beatS = 0, npVisible = false, lastBeatW = -1;
+  let beatS = 0, npVisible = false, lastBeatW = -1, barsIdle = false, npW = 0;
   const kiaiEl = $("#kiai"), tunerEl = $("#introGo");
-  new IntersectionObserver(([e]) => (npVisible = e.isIntersecting)).observe(npViz);
+  new IntersectionObserver(([e]) => { npVisible = e.isIntersecting; npW = 0; }).observe(npViz);
   function audioFrame() {
     let bass = 0;
     if (analyser && isPlaying()) {
       analyser.getByteFrequencyData(freq);
       for (let i = 0; i < 8; i++) bass += freq[i];
       bass /= 8 * 255;
-      pBars.forEach((b, i) => (b.style.height = 3 + (freq[2 + i * 9] / 255) * 15 + "px"));
-    } else if (!isPlaying()) pBars.forEach((b) => (b.style.height = "3px"));
+      pBars.forEach((b, i) => (b.style.transform = `scaleY(${((3 + (freq[2 + i * 9] / 255) * 15) / 18).toFixed(3)})`));
+      barsIdle = false;
+    } else if (!barsIdle) { barsIdle = true; pBars.forEach((b) => (b.style.transform = "")); }
     const target = clamp((bass - 0.5) / 0.4, 0, 1);
     beatS += (target - beatS) * (target > beatS ? 0.5 : 0.08);
     window.__beat = beatS;
@@ -436,7 +451,8 @@
     if (npVisible) drawNp();
   }
   function drawNp() {
-    const w = (npViz.width = npViz.clientWidth * DPR), h = npViz.height = 90 * DPR;
+    if (!npW) { npW = Math.round(npViz.clientWidth * DPR); npViz.width = npW; npViz.height = 90 * DPR; }
+    const w = npW, h = npViz.height;
     nctx.clearRect(0, 0, w, h);
     const n = 64, bw = w / n;
     for (let i = 0; i < n; i++) {
@@ -584,16 +600,31 @@
   addEventListener("touchmove", () => (atPauseUntil = Date.now() + 2500), { passive: true });
 
   /* ---------------- main loop ---------------- */
-  const scoreEl = $("#score"), accEl = $("#acc");
-  let dispScore = 0;
+  const scoreEl = $("#score"), accEl = $("#acc"), flEl = $("#flashlight"), fpsEl = $("#fps");
+  let dispScore = 0, lastNow = 0, fpsOn = store.get("fps", false), fpsAcc = 0, fpsN = 0, fpsT = 0, fpsWorst = 0;
+  function setFps(on) { fpsOn = on; store.set("fps", on); fpsEl.hidden = !on; fpsAcc = fpsN = fpsWorst = 0; }
+  // osu!-style frame counter: average fps, average + worst frame time, and the 3D render
+  // resolution the adaptive quality settled on. Green ≥ 90% of the display's refresh rate.
+  function fpsFrame(now, ldt) {
+    fpsAcc += ldt; fpsN++; fpsWorst = Math.max(fpsWorst, ldt);
+    if (now - fpsT < 500 || !fpsN) return;
+    const ms = fpsAcc / fpsN, fps = 1000 / ms, g = window.__gfx || {};
+    const hz = g.refresh ? 1 / g.refresh : 60;
+    fpsEl.className = "hud-fps mono " + (fps >= hz * 0.9 ? "ok" : fps >= hz * 0.6 ? "meh" : "bad");
+    fpsEl.innerHTML = `<b>${Math.round(fps)}</b> fps <span>${ms.toFixed(1)}ms · worst ${fpsWorst.toFixed(1)}ms${g.pr ? ` · 3d res ${Math.round((g.pr / (devicePixelRatio || 1)) * 100)}%` : ""}</span>`;
+    fpsAcc = fpsN = fpsWorst = 0; fpsT = now;
+  }
   function loop(now) {
+    const ldt = lastNow ? Math.min(250, now - lastNow) : 16.7;
+    lastNow = now;
+    if (fpsOn) fpsFrame(now, ldt);
     // cursor
     if (Math.abs(mx - rx) + Math.abs(my - ry) + Math.abs(mx - gx) + Math.abs(my - gy) > 0.2) {
       rx += (mx - rx) * 0.16; ry += (my - ry) * 0.16;
       gx += (mx - gx) * 0.07; gy += (my - gy) * 0.07;
       dot.style.transform = `translate3d(${mx}px,${my}px,0)`;
       ring.style.transform = `translate3d(${rx}px,${ry}px,0)`;
-      if (fxOn) glow.style.transform = `translate3d(${gx}px,${gy}px,0)`;
+      if (fxOn && !body.classList.contains("gl")) glow.style.transform = `translate3d(${gx}px,${gy}px,0)`;
     }
     audioFrame();
     drawFx(now);
@@ -604,8 +635,8 @@
     }
     const accTxt = (accuracy() * 100).toFixed(2) + "%";
     if (accEl.textContent !== accTxt) accEl.textContent = accTxt;
-    if (mods.has("FL")) { root.style.setProperty("--flx", (body.classList.contains("has-mouse") ? mx : innerWidth / 2) + "px"); root.style.setProperty("--fly", (body.classList.contains("has-mouse") ? my : innerHeight / 2) + "px"); }
-    if (mods.has("AT") && !navigating && !body.classList.contains("is-intro") && Date.now() > atPauseUntil && pal.hidden) window.scrollBy({ top: 1.4, behavior: "instant" });
+    if (mods.has("FL")) { const hm = body.classList.contains("has-mouse"); flEl.style.setProperty("--flx", (hm ? mx : innerWidth / 2) + "px"); flEl.style.setProperty("--fly", (hm ? my : innerHeight / 2) + "px"); }
+    if (mods.has("AT") && !navigating && !body.classList.contains("is-intro") && Date.now() > atPauseUntil && pal.hidden) window.scrollBy({ top: 1.4 * Math.min(4, ldt / 16.7), behavior: "instant" });
     requestAnimationFrame(loop);
   }
 
@@ -614,6 +645,7 @@
   const actions = [
     { t: "play / pause music", f: "m", run: toggleMusic, on: () => isPlaying() },
     { t: "toggle effects", f: "fx", run: toggleFx, on: () => fxOn },
+    { t: "fps counter", f: "f", run: () => setFps(!fpsOn), on: () => fpsOn, keep: true },
     ...Object.keys(MODS).map((m) => ({ t: `mod ${m} · ${MODS[m]}`, f: m, run: () => toggleMod(m), on: () => mods.has(m), keep: true })),
     { t: () => `keyboard sound: ${keyMode} (cycle)`, f: "keys", run: cycleKeyMode, keep: true },
     { t: "hit sounds", f: "sfx", run: () => { hitOn = !hitOn; store.set("hits", hitOn); toast("hit sounds " + (hitOn ? "on" : "off")); }, on: () => hitOn, keep: true },
@@ -689,6 +721,7 @@
     if (editable(e.target) || e.ctrlKey || e.metaKey || e.altKey) return;
     if (e.key === "/") { e.preventDefault(); openPal(); }
     else if (e.key === "m" || e.key === "M") toggleMusic();
+    else if (e.key === "f" || e.key === "F") setFps(!fpsOn);
     else if (e.key === "j") go(sections[Math.min(activeIdx + 1, sections.length - 1)].id);
     else if (e.key === "k") go(sections[Math.max(activeIdx - 1, 0)].id);
   });
@@ -717,9 +750,12 @@
   let noiseLvl = 1.6, lastReadout = 0;
   const introT0 = performance.now();
   const sigBars = $$("#sigBars i");
+  let waveW = 0, waveH = 0; // from a ResizeObserver: clientWidth in the frame forced a layout each frame
+  new ResizeObserver(() => { waveW = wave.clientWidth; waveH = wave.clientHeight; }).observe(wave);
   function introFrame(now) {
     if (entered && now - enteredAt > 1600) return;
-    const w = wave.clientWidth, h = wave.clientHeight, dpr = Math.min(devicePixelRatio || 1, 2);
+    const w = waveW, h = waveH, dpr = Math.min(devicePixelRatio || 1, 2);
+    if (!w) return requestAnimationFrame(introFrame);
     if (wave.width !== Math.round(w * dpr)) { wave.width = Math.round(w * dpr); wave.height = Math.round(h * dpr); }
     wctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     wctx.clearRect(0, 0, w, h);
@@ -863,8 +899,11 @@
       const y = 1 - (i / Math.max(1, n - 1)) * 2, r = Math.sqrt(1 - y * y), th = i * Math.PI * (3 - Math.sqrt(5));
       return [Math.cos(th) * r, y, Math.sin(th) * r];
     });
-    let ax = 0.3, ay = 0, vx = 0.0016, vy = 0.004, drag = null, visible = false;
+    let ax = 0.3, ay = 0, vx = 0.0016, vy = 0.004, drag = null, visible = false, R = 175, last = performance.now();
+    const lastOp = new Array(n).fill(-1);
     new IntersectionObserver(([e]) => (visible = e.isIntersecting)).observe(wrap);
+    // radius from a ResizeObserver: reading clientWidth inside the frame forced a layout every frame
+    new ResizeObserver(() => (R = wrap.clientWidth < 420 ? 125 : 175)).observe(wrap);
     wrap.addEventListener("pointerdown", (e) => { drag = { x: e.clientX, y: e.clientY }; wrap.setPointerCapture(e.pointerId); });
     wrap.addEventListener("pointermove", (e) => {
       if (!drag) return;
@@ -873,11 +912,12 @@
     });
     wrap.addEventListener("pointerup", () => (drag = null));
     wrap.addEventListener("pointercancel", () => (drag = null));
-    const frame = () => {
+    const frame = (now) => {
+      const f = Math.min(6, (now - last) / (1000 / 60)); // 60 fps-tuned speeds, same at any refresh rate
+      last = now;
       if (visible) {
-        const R = wrap.clientWidth < 420 ? 125 : 175;
-        ax += vx; ay += vy;
-        if (!drag) { vx += (0.0016 - vx) * 0.02; vy += (0.004 - vy) * 0.02; }
+        ax += vx * f; ay += vy * f;
+        if (!drag) { const e = 1 - Math.pow(0.98, f); vx += (0.0016 - vx) * e; vy += (0.004 - vy) * e; }
         const b = window.__beat || 0;
         const sx = Math.sin(ax), cx = Math.cos(ax), sy = Math.sin(ay), cy = Math.cos(ay);
         for (let i = 0; i < n; i++) {
@@ -887,9 +927,11 @@
           const rr = R * (1 + b * 0.06);
           const depth = (z2 + 1) / 2;
           const s = spans[i];
-          s.style.transform = `translate3d(${x1 * rr}px, ${y2 * rr}px, ${z2 * rr}px) translate(-50%, -50%)`;
-          s.style.opacity = (0.15 + depth * 0.85).toFixed(2);
-          s.style.zIndex = Math.round(depth * 100);
+          // preserve-3d already depth-sorts by z, so no z-index writes (they restacked the
+          // whole sphere every frame); opacity is only written when it visibly changes
+          s.style.transform = `translate3d(${(x1 * rr).toFixed(1)}px, ${(y2 * rr).toFixed(1)}px, ${(z2 * rr).toFixed(1)}px) translate(-50%, -50%)`;
+          const op = Math.round((0.15 + depth * 0.85) * 50) / 50;
+          if (op !== lastOp[i]) { lastOp[i] = op; s.style.opacity = op; }
         }
       }
       requestAnimationFrame(frame);
@@ -979,6 +1021,18 @@
     });
   })();
 
+  // embedded pages are mounted only while near the viewport and taken out when far away:
+  // a live site in an iframe keeps animating (and costing frames) even when scrolled off
+  const frameIO = new IntersectionObserver((ents) => ents.forEach((e) => {
+    const box = e.target, cur = box.querySelector("iframe");
+    if (e.isIntersecting && !cur) {
+      const f = document.createElement("iframe");
+      f.src = box.dataset.frameSrc; f.title = box.dataset.frameTitle || ""; f.referrerPolicy = "no-referrer";
+      box.appendChild(f);
+    } else if (!e.isIntersecting && cur) box.removeChild(cur);
+  }), { rootMargin: "500px 0px" });
+  const lazyFrames = (scope) => $$("[data-frame-src]", scope).forEach((b) => frameIO.observe(b));
+
   // ledger
   (async () => {
     const el = $("#ledgerBody");
@@ -992,7 +1046,7 @@
     const embed = site
       ? `<div class="panel ledger-live" data-reveal>
           <div class="panel-head mono"><span><span class="dot-live"></span> live · ${esc(site.replace(/^https?:\/\//, ""))}</span><a href="${esc(site)}" target="_blank" rel="noopener">full screen ↗</a></div>
-          <div class="ledger-frame"><iframe src="${esc(site)}" title="Ledger: donations, expenses and receipts" loading="lazy" referrerpolicy="no-referrer"></iframe></div>
+          <div class="ledger-frame" data-frame-src="${esc(site)}" data-frame-title="Ledger: donations, expenses and receipts"></div>
         </div>`
       : "";
     const about = `${has(L.about) ? `<p class="lead">${esc(L.about)}</p>` : `<p class="lead">${todo("ledger.about — what is the ledger?")}</p>`}
@@ -1001,9 +1055,11 @@
     if (!has(L.repo)) {
       el.innerHTML = `${about}<div class="placeholder" data-reveal>$ git clone <b>&lt;ledger&gt;</b><br>${todo("set ledger.repo in config.js — e.g. \"Ahmadhussain0033/ledger\"")}</div>`;
       reveal(el);
+      lazyFrames(el);
       return;
     }
     el.innerHTML = `${about}<div class="loading mono">reading ${esc(L.repo)}<span class="dots"></span></div>`;
+    lazyFrames(el);
     try {
       const [repo, commits, langs] = await Promise.all([gh(`/repos/${L.repo}`), gh(`/repos/${L.repo}/commits?per_page=8`), gh(`/repos/${L.repo}/languages`)]);
       const total = Object.values(langs).reduce((a, b) => a + b, 0) || 1;
@@ -1030,8 +1086,10 @@
           </div>
         </div>`;
       reveal(el);
+      lazyFrames(el);
     } catch (err) {
       el.innerHTML = `${about}<div class="placeholder">couldn't load ${esc(L.repo)} (${esc(err.message)})</div>`;
+      lazyFrames(el);
     }
   })();
 
@@ -1451,6 +1509,7 @@
   addEventListener("resize", resize);
   resize();
   applyMods();
+  setFps(fpsOn);
   renderSoundPicker();
   reveal();
   onScroll();
