@@ -27,8 +27,6 @@
     <div class="pdate intro-pdate" aria-hidden="true"></div>
     <div class="intro-sig mono" aria-hidden="true">
       <div class="sig-bars" id="sigBars"><i></i><i></i><i></i><i></i><i></i></div>
-      <div><span class="dim">SNR</span> <b id="introSnr">—</b></div>
-      <div><span class="dim">C = ½log₂(1+SNR)</span> <b id="introCap">—</b></div>
     </div>
     <div class="intro-center">
       <p class="intro-kicker mono" id="introKicker">searching for signal</p>
@@ -123,7 +121,6 @@
           <button class="btn btn-ghost mono" data-open-palette>press <kbd>/</kbd> to explore</button>
         </div>
       </div>
-      <div class="hero-formula mono" aria-hidden="true">H(X) = −Σ p(x) log₂ p(x)</div>
       <div class="scroll-hint mono" aria-hidden="true"><span></span>scroll</div>
     </section>
 
@@ -154,32 +151,8 @@
 
     <!-- 04 RESEARCH -->
     <section id="research" data-file="research/" data-title="research">
-      <div class="grid-2">
-        <div class="md" data-reveal>
-          <h3><span class="h-mark">###</span> what is information theory?</h3>
-          <p>Every message — a text, a song, a photo, your DNA — can be measured in <strong>bits</strong>. Information theory asks: how much information is really in there, and how efficiently can we send it, store it, or protect it from noise?</p>
-          <p>The key idea is <strong>surprise</strong>. If you already know what comes next, it carries no information. A string like <code>aaaaaaaa</code> is perfectly predictable: zero surprise. A coin flip carries exactly one bit.</p>
-          <blockquote>try it → type anything into the box and watch how many bits it takes.</blockquote>
-        </div>
-        <div class="entropy" data-reveal>
-          <div class="ent-head mono"><span>entropy.playground</span><span class="dim">live</span></div>
-          <textarea id="entIn" rows="3" spellcheck="false" aria-label="Text to measure">hello world</textarea>
-          <div class="ent-presets mono">
-            <button data-preset="aaaaaaaaaaaa">aaaa…</button>
-            <button data-preset="abababababab">abab…</button>
-            <button data-preset="abcdabcdabcd">abcd…</button>
-            <button data-preset="the quick brown fox jumps over the lazy dog">pangram</button>
-            <button data-preset="__random">random</button>
-          </div>
-          <div class="ent-stats">
-            <div><span class="ent-big" id="entH">0</span><span class="mono dim">bits / char</span></div>
-            <div><span class="ent-big" id="entTotal">0</span><span class="mono dim">bits total (min)</span></div>
-            <div><span class="ent-big" id="entSave">0%</span><span class="mono dim">smaller than 8-bit</span></div>
-          </div>
-          <div class="ent-bars" id="entBars"></div>
-          <p class="ent-note mono dim">H = −Σ p·log₂p over character frequencies. it ignores order — <code>abab</code> and <code>aabb</code> score the same. that gap is where the interesting research lives.</p>
-        </div>
-      </div>
+      <h3 class="sub first" data-reveal><span class="h-mark">###</span> <span id="thoughtsTitle">my take on information theory</span></h3>
+      <div class="md thoughts" id="thoughts" data-reveal></div>
       <h3 class="sub" data-reveal><span class="h-mark">###</span> what i'm working on</h3>
       <div class="research-list" id="researchList"></div>
       <h3 class="sub" data-reveal><span class="h-mark">###</span> papers & notes</h3>
@@ -193,7 +166,7 @@
     </section>
 
     <!-- 06 LEDGER -->
-    <section id="ledger" data-file="ledger/" data-title="the ledger">
+    <section id="ledger" data-file="ledger/" data-title="the ledger · support">
       <div id="ledgerBody"></div>
     </section>
 
@@ -225,10 +198,6 @@
 
     <!-- 11 PRINCIPLES -->
     <section id="principles" data-file="principles.md" data-title="principles">
-      <blockquote class="big-quote" data-reveal>
-        <p>“The fundamental problem of communication is that of reproducing at one point either exactly or approximately a message selected at another point.”</p>
-        <cite class="mono">— Claude Shannon, <em>A Mathematical Theory of Communication</em>, 1948</cite>
-      </blockquote>
       <ol class="principles" id="principlesList"></ol>
     </section>
 

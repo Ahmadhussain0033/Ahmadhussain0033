@@ -18,6 +18,7 @@
 <p align="center">
   <a href="https://ahmadhussain0033.github.io/About-Me/"><img src="https://img.shields.io/badge/site-enter_the_signal-0a0a0b?style=for-the-badge&labelColor=f5f5f6&color=0a0a0b&logo=githubpages&logoColor=0a0a0b" alt="website"></a>
   <a href="https://discord.com"><img src="https://img.shields.io/badge/discord-nerdatronic-0a0a0b?style=for-the-badge&labelColor=4fe3ff&color=0a0a0b&logo=discord&logoColor=0a0a0b" alt="discord: nerdatronic"></a>
+  <a href="https://ahmadhussain0033.github.io/Ledger/#donate"><img src="https://img.shields.io/badge/support-the_ledger-0a0a0b?style=for-the-badge&labelColor=6ee7a0&color=0a0a0b&logo=githubsponsors&logoColor=0a0a0b" alt="support: the ledger"></a>
   <a href="https://github.com/Ahmadhussain0033?tab=repositories"><img src="https://img.shields.io/badge/repos-browse-0a0a0b?style=for-the-badge&labelColor=d6d6da&color=0a0a0b&logo=github&logoColor=0a0a0b" alt="repositories"></a>
   <!-- todo: youtube badge → https://img.shields.io/badge/youtube-<channel>-0a0a0b?style=for-the-badge&labelColor=ff5d73&color=0a0a0b&logo=youtube&logoColor=0a0a0b -->
 </p>
@@ -27,8 +28,6 @@
 ### `$ whoami`
 
 ```python
-from math import log2
-
 class Ahmad:
     handle    = "nerdatronic"
     roles     = ["aspiring information theorist", "researcher", "a bit of everything"]
@@ -36,24 +35,11 @@ class Ahmad:
     making    = []                                          # todo
     listening = "STRUCT — super slowed + reverb"
     motto     = "find the signal in the noise"
-
-    def capacity(self, snr: float) -> float:
-        """Shannon: max bits per channel use over a real AWGN channel."""
-        return 0.5 * log2(1 + snr)
 ```
 
-<details>
-<summary><b>what is information theory?</b> <sub>(the 20-second version)</sub></summary>
-<br>
+### `~/thoughts.md`
 
-> Every message (a text, a song, a photo, your DNA) can be measured in **bits**.
-> Information theory asks how much information is really in there, and how efficiently
-> we can send it, store it, or protect it from noise.
-> `aaaaaaaa` has **0 bits** per symbol: you already knew what came next.
-> A fair coin flip is exactly **1 bit**.
-> There's a live entropy playground on [my site](https://ahmadhussain0033.github.io/About-Me/#research).
-
-</details>
+<!-- my take on information theory: write it here -->
 
 ### `~/projects`
 
@@ -65,6 +51,12 @@ class Ahmad:
 | ◉ | <!-- todo --> | <!-- todo --> |
 | ◉ | <!-- todo --> | <!-- todo --> |
 | ◉ | <!-- todo --> | <!-- todo --> |
+
+### `~/ledger`
+
+> Every donation, expense and receipt in one place, with receipts.
+> **[open the ledger →](https://ahmadhussain0033.github.io/Ledger/)** · [support](https://ahmadhussain0033.github.io/Ledger/#donate) · [where the money goes](https://ahmadhussain0033.github.io/Ledger/#spending)
+<!-- todo: one line on what support goes toward -->
 
 ### `~/now.md`
 
@@ -103,6 +95,7 @@ class Ahmad:
 
 ```bash
 $ discord   nerdatronic
+$ support   https://ahmadhussain0033.github.io/Ledger/#donate
 $ site      https://ahmadhussain0033.github.io/About-Me/#contact
 $ email     # todo
 ```

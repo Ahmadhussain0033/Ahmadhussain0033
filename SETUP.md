@@ -15,6 +15,8 @@ All personal content lives in **`js/config.js`**.
 | Want to… | Edit in `config.js` |
 |---|---|
 | change bio, facts, now-list, interests | `about`, `facts`, `now`, `interests` |
+| your thoughts on information theory (research section + README `~/thoughts.md`) | `thoughtsTitle`, `thoughts` |
+| ledger / support section | `ledger.site`, `ledger.why`, `ledger.links` (buttons that jump to sections of the ledger site) |
 | your project portfolio | `projects` (curated; nothing is pulled automatically. `featured: true` makes a card full-width) |
 | add research / papers | `research`, `papers` |
 | update roadmap / medals | `roadmap`, `achievements` (an empty `title` shows as a locked medal) |

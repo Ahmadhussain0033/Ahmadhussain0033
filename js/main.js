@@ -17,6 +17,13 @@
   const or = (v, label) => (has(v) ? esc(v) : todo(label));
   const safeUrl = (u) => { const v = String(u || "").trim(); return /^(https?:|mailto:)/i.test(v) || /^(assets|docs)\/[\w./-]+$/.test(v) ? v : ""; };
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  // tiny inline markdown: **bold**, *em*, `code`, [text](https://…)
+  const mdInline = (t) =>
+    esc(t)
+      .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+      .replace(/\*(.+?)\*/g, "<em>$1</em>")
+      .replace(/`(.+?)`/g, "<code>$1</code>")
+      .replace(/\[(.+?)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
 
   const store = {
     get(k, d) { try { const v = localStorage.getItem("ah:" + k); return v === null ? d : JSON.parse(v); } catch { return d; } },
@@ -742,9 +749,7 @@
     if (now - lastReadout > 90) {
       lastReadout = now;
       const snr = 0.5 / (sigma * sigma); // signal power A²/2 with A = 1, noise power σ²
-      const db = 10 * Math.log10(snr), cap = 0.5 * Math.log2(1 + snr);
-      $("#introSnr").textContent = db.toFixed(1) + " dB";
-      $("#introCap").textContent = cap.toFixed(2) + " bits/use";
+      const db = 10 * Math.log10(snr);
       const lock = clamp((db + 2) / 28, 0, 1);
       $("#introPct").textContent = "lock " + Math.round(lock * 100) + "%";
       sigBars.forEach((b, i) => b.classList.toggle("on", i < Math.round(lock * 5)));
@@ -915,39 +920,13 @@
           .join("")
       : `<div class="placeholder" data-reveal>${todo("papers & notes — add them in config.js → papers")}</div>`;
 
-    // entropy playground
-    const inp = $("#entIn");
-    function entropy(str) {
-      const chars = Array.from(str);
-      const n = chars.length;
-      const m = new Map();
-      for (const c of chars) m.set(c, (m.get(c) || 0) + 1);
-      let H = 0;
-      for (const v of m.values()) { const p = v / n; H -= p * Math.log2(p); }
-      return { n, H: n ? Math.abs(H) : 0, counts: [...m].sort((a, b) => b[1] - a[1]) };
-    }
-    window.__entropy = entropy; // exposed for testing
-    const show = (c) => (c === " " ? "␣" : c === "\n" ? "↵" : c === "\t" ? "⇥" : c);
-    function update() {
-      const { n, H, counts } = entropy(inp.value);
-      $("#entH").textContent = H.toFixed(3);
-      $("#entTotal").textContent = (H * n).toFixed(1);
-      $("#entSave").textContent = n ? Math.round((1 - H / 8) * 100) + "%" : "—";
-      const max = counts.length ? counts[0][1] : 1;
-      $("#entBars").innerHTML = counts
-        .slice(0, 24)
-        .map(([c, k]) => `<div class="ent-bar"><b>${esc(show(c))}</b><i style="width:${(k / max) * 100}%"></i><span>${((k / n) * 100).toFixed(1)}%</span></div>`)
-        .join("");
-    }
-    inp.addEventListener("input", update);
-    $$("[data-preset]").forEach((b) =>
-      b.addEventListener("click", () => {
-        let v = b.dataset.preset;
-        if (v === "__random") { const a = "abcdefghijklmnopqrstuvwxyz0123456789"; v = Array.from({ length: 48 }, () => a[(Math.random() * a.length) | 0]).join(""); }
-        inp.value = v; update();
-      })
-    );
-    update();
+  })();
+
+  // your thoughts (research section)
+  (() => {
+    if (has(C.thoughtsTitle)) $("#thoughtsTitle").textContent = C.thoughtsTitle;
+    const paras = (C.thoughts || []).filter(has);
+    $("#thoughts").innerHTML = paras.length ? paras.map((p) => `<p>${mdInline(p)}</p>`).join("") : `<p>${todo("your thoughts — write them in config.js → thoughts")}</p>`;
   })();
 
   // GitHub helper (cached per session to stay under the 60 req/h limit)
@@ -1004,7 +983,21 @@
   (async () => {
     const el = $("#ledgerBody");
     const L = C.ledger || {};
-    const about = has(L.about) ? `<p class="lead">${esc(L.about)}</p>` : `<p class="lead">${todo("ledger.about — what is the ledger?")}</p>`;
+    const site = safeUrl(L.site);
+    const btns = site
+      ? `<div class="ledger-cta" data-reveal>${(L.links || [])
+          .map((l) => `<a class="btn${l.primary ? " btn-hi" : ""}" href="${esc(site + (l.hash ? "#" + encodeURIComponent(l.hash) : ""))}" target="_blank" rel="noopener">${esc(l.label)} ${l.primary ? "♥" : "↗"}</a>`)
+          .join("")}<a class="btn btn-ghost mono" href="${esc(site)}" target="_blank" rel="noopener">open the ledger ↗</a></div>`
+      : "";
+    const embed = site
+      ? `<div class="panel ledger-live" data-reveal>
+          <div class="panel-head mono"><span><span class="dot-live"></span> live · ${esc(site.replace(/^https?:\/\//, ""))}</span><a href="${esc(site)}" target="_blank" rel="noopener">full screen ↗</a></div>
+          <div class="ledger-frame"><iframe src="${esc(site)}" title="Ledger: donations, expenses and receipts" loading="lazy" referrerpolicy="no-referrer"></iframe></div>
+        </div>`
+      : "";
+    const about = `${has(L.about) ? `<p class="lead">${esc(L.about)}</p>` : `<p class="lead">${todo("ledger.about — what is the ledger?")}</p>`}
+      <p class="ledger-why">${has(L.why) ? esc(L.why) : todo("ledger.why — what support goes toward")}</p>${btns}${embed}
+      <h3 class="sub" data-reveal><span class="h-mark">###</span> built in public</h3>`;
     if (!has(L.repo)) {
       el.innerHTML = `${about}<div class="placeholder" data-reveal>$ git clone <b>&lt;ledger&gt;</b><br>${todo("set ledger.repo in config.js — e.g. \"Ahmadhussain0033/ledger\"")}</div>`;
       reveal(el);

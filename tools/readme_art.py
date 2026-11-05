@@ -29,7 +29,7 @@ random.seed(7)
 NAME_A, NAME_B = "AHMAD", "HUSSAIN"
 HANDLE = "@nerdatronic"
 SUB = "aspiring information theorist  ·  researcher  ·  a bit of everything"
-BAND = "  INFORMATION THEORY  //  RESEARCH  //  SIGNAL FROM NOISE  //  H(X) = -SUM p log p  //"
+BAND = "  INFORMATION THEORY  //  RESEARCH  //  SIGNAL FROM NOISE  //  A BIT OF EVERYTHING  //"
 
 BG, FG, HI, DIM, MUTE, Y = "#0a0a0b", "#d6d6da", "#f5f5f6", "#8a8a93", "#5d5d65", "#4fe3ff"  # Y = accent (cyan)
 

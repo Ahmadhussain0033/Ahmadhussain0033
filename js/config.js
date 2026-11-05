@@ -58,6 +58,14 @@ window.SITE = {
     { group: "learn", items: ["", "", ""] },
   ],
 
+  /* ---------- research/ → your own thoughts on information theory ---------- */
+  thoughtsTitle: "my take on information theory",
+  thoughts: [
+    // each string = one paragraph. supports **bold**, *italic*, `code`, [links](https://…)
+    "",
+    "",
+  ],
+
   /* ---------- research/ ---------- */
   research: [
     // { title, blurb, status: "proven" | "open" | "conjecture" | "idea", link }
@@ -87,8 +95,17 @@ window.SITE = {
 
   /* ---------- ledger/ (one repo, shown as a live dashboard) ---------- */
   ledger: {
-    repo: "Ahmadhussain0033/Ledger",
-    about: "", // a sentence on what the ledger is
+    site: "https://ahmadhussain0033.github.io/Ledger/", // the live ledger — embedded + linked
+    repo: "Ahmadhussain0033/Ledger",                     // source repo — shows recent commits
+    about: "Every donation, expense and receipt in one place. What I'm working on, where the money goes, with receipts.",
+    why: "", // todo: in your words — what support goes toward / what you need it for
+    // buttons → sections of the ledger site
+    links: [
+      { label: "support me", hash: "donate", primary: true },
+      { label: "where the money goes", hash: "spending" },
+      { label: "funding drives", hash: "drives" },
+      { label: "backers", hash: "supporters" },
+    ],
   },
 
   /* ---------- roadmap.md ---------- */
