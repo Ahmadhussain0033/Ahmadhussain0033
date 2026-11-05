@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ahmad Hussain — signal from noise</title>
+  <meta name="description" content="Ahmad Hussain (nerdatronic) — aspiring information theorist, researcher, and a little bit of everything." />
+  <meta name="theme-color" content="#0b0b0c" />
+  <meta property="og:title" content="Ahmad Hussain — signal from noise" />
+  <meta property="og:description" content="aspiring information theorist, researcher, and a little bit of everything." />
+  <meta property="og:type" content="website" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='26' fill='none' stroke='%23e5e5e5' stroke-width='5'/%3E%3Ccircle cx='32' cy='32' r='9' fill='%23ffd166'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;500;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="is-intro">
+
+  <!-- ============ INTRO ============ -->
+  <div id="intro" role="dialog" aria-label="Welcome">
+    <div class="intro-noise" aria-hidden="true"></div>
+    <div class="intro-inner">
+      <p class="intro-kicker mono" id="introKicker">acquiring signal</p>
+      <h1 class="intro-name" id="introName" aria-label="Ahmad Hussain"></h1>
+      <button class="intro-circle" id="introGo" aria-label="Enter the site with sound">
+        <span class="approach" aria-hidden="true"></span>
+        <span class="approach a2" aria-hidden="true"></span>
+        <span class="intro-circle-core">
+          <span class="intro-circle-label">tune in</span>
+          <span class="intro-circle-sub mono" id="introPct">0%</span>
+        </span>
+      </button>
+      <p class="intro-hint mono">click the circle · or press <kbd>enter</kbd></p>
+      <button class="intro-silent mono" id="introSilent">enter without sound</button>
+    </div>
+  </div>
+
+  <!-- ============ AMBIENCE ============ -->
+  <canvas id="triangles" aria-hidden="true"></canvas>
+  <div id="glow" aria-hidden="true"></div>
+  <div class="grain" aria-hidden="true"></div>
+  <canvas id="fx" aria-hidden="true"></canvas>
+  <div id="cur-dot" aria-hidden="true"></div>
+  <div id="cur-ring" aria-hidden="true"></div>
+  <div id="wipe" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+
+  <!-- ============ HUD ============ -->
+  <div class="hud-bar" aria-hidden="true"><span id="hp"></span></div>
+  <div class="hud-top mono" aria-hidden="true">
+    <span class="hud-path"><span class="dim">~/ahmad/</span><span id="hudFile">readme.md</span></span>
+    <span class="hud-num" id="hudNum">00</span>
+  </div>
+  <div class="hud-combo" id="combo" aria-hidden="true"><span id="comboN">0</span><small>x</small></div>
+  <nav class="rail" id="rail" aria-label="Sections"></nav>
+  <button class="slash-btn mono" id="slashBtn" aria-label="Open quick navigation">/</button>
+
+  <!-- ============ PLAYER ============ -->
+  <div class="player" id="player">
+    <button class="disc" id="pPlay" aria-label="Play music"><span class="disc-dot"></span></button>
+    <div class="p-meta">
+      <span class="p-title" id="pTitle">—</span>
+      <span class="p-artist mono" id="pArtist">—</span>
+    </div>
+    <div class="p-viz" id="pViz" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+    <input class="p-vol" id="pVol" type="range" min="0" max="1" step="0.01" aria-label="Volume" />
+    <audio id="audio" loop preload="auto"></audio>
+  </div>
+
+  <!-- ============ PALETTE ============ -->
+  <div class="palette" id="palette" role="dialog" aria-modal="true" aria-label="Quick navigation" hidden>
+    <div class="pal-box">
+      <div class="pal-input-row mono">
+        <span class="pal-prompt">/</span>
+        <input id="palInput" type="text" autocomplete="off" spellcheck="false" placeholder="jump to… (type to filter)" aria-label="Filter sections and commands" />
+        <kbd>esc</kbd>
+      </div>
+      <ul class="pal-list" id="palList" role="listbox"></ul>
+      <div class="pal-foot mono"><span><kbd>↑</kbd><kbd>↓</kbd> move</span><span><kbd>enter</kbd> go</span><span><kbd>m</kbd> music</span><span><kbd>j</kbd>/<kbd>k</kbd> next/prev</span></div>
+    </div>
+  </div>
+
+  <div class="toast mono" id="toast" role="status" aria-live="polite"></div>
+
+  <!-- ============ CONTENT ============ -->
+  <main id="main">
+
+    <!-- 00 HOME -->
+    <section id="home" class="hero" data-num="00" data-file="readme.md" data-title="home">
+      <div id="three" aria-hidden="true"></div>
+      <div class="hero-inner">
+        <p class="hero-kicker mono" data-reveal><span class="dot-live"></span> <span id="heroKicker">hello, you found me</span></p>
+        <h1 class="hero-name" id="heroName" data-reveal></h1>
+        <p class="hero-role" data-reveal>
+          <span class="dim">i'm </span><span class="role" id="role"></span><span class="caret"></span>
+        </p>
+        <p class="hero-tag" id="heroTag" data-reveal></p>
+        <div class="hero-cta" data-reveal>
+          <a href="#about" class="btn btn-hi" data-nav>read more <span class="mono">↓</span></a>
+          <a href="#contact" class="btn" data-nav>say hi</a>
+          <button class="btn btn-ghost mono" data-open-palette>press <kbd>/</kbd> to explore</button>
+        </div>
+      </div>
+      <div class="hero-formula mono" aria-hidden="true">H(X) = −Σ p(x) log₂ p(x)</div>
+      <div class="scroll-hint mono" aria-hidden="true"><span></span>scroll</div>
+    </section>
+
+    <!-- 01 ABOUT -->
+    <section id="about" data-num="01" data-file="about.md" data-title="about me">
+      <div class="grid-2">
+        <div class="md" id="aboutText" data-reveal></div>
+        <div data-reveal>
+          <table class="md-table" id="facts"><thead><tr><th>key</th><th>value</th></tr></thead><tbody></tbody></table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 02 NOW -->
+    <section id="now" data-num="02" data-file="now.md" data-title="right now">
+      <p class="lead" data-reveal>what i'm spending my time on these days <span class="mono dim" id="nowUpdated"></span></p>
+      <ul class="checklist" id="nowList"></ul>
+    </section>
+
+    <!-- 03 EVERYTHING -->
+    <section id="everything" data-num="03" data-file="everything.md" data-title="a bit of everything">
+      <p class="lead" data-reveal>not one thing. a lot of things. drag the sphere.</p>
+      <div class="grid-2 align-center">
+        <div class="sphere-wrap" data-reveal><div class="sphere" id="sphere"></div></div>
+        <div class="groups" id="groups"></div>
+      </div>
+    </section>
+
+    <!-- 04 RESEARCH -->
+    <section id="research" data-num="04" data-file="research/" data-title="research">
+      <div class="grid-2">
+        <div class="md" data-reveal>
+          <h3><span class="h-mark">###</span> what is information theory?</h3>
+          <p>Every message — a text, a song, a photo, your DNA — can be measured in <strong>bits</strong>. Information theory asks: how much information is really in there, and how efficiently can we send it, store it, or protect it from noise?</p>
+          <p>The key idea is <strong>surprise</strong>. If you already know what comes next, it carries no information. A string like <code>aaaaaaaa</code> is perfectly predictable: zero surprise. A coin flip carries exactly one bit.</p>
+          <blockquote>try it → type anything into the box and watch how many bits it takes.</blockquote>
+        </div>
+        <div class="entropy" data-reveal>
+          <div class="ent-head mono"><span>entropy.playground</span><span class="dim">live</span></div>
+          <textarea id="entIn" rows="3" spellcheck="false" aria-label="Text to measure">hello world</textarea>
+          <div class="ent-presets mono">
+            <button data-preset="aaaaaaaaaaaa">aaaa…</button>
+            <button data-preset="abababababab">abab…</button>
+            <button data-preset="abcdabcdabcd">abcd…</button>
+            <button data-preset="the quick brown fox jumps over the lazy dog">pangram</button>
+            <button data-preset="__random">random</button>
+          </div>
+          <div class="ent-stats">
+            <div><span class="ent-big" id="entH">0</span><span class="mono dim">bits / char</span></div>
+            <div><span class="ent-big" id="entTotal">0</span><span class="mono dim">bits total (min)</span></div>
+            <div><span class="ent-big" id="entSave">0%</span><span class="mono dim">smaller than 8-bit</span></div>
+          </div>
+          <div class="ent-bars" id="entBars"></div>
+          <p class="ent-note mono dim">H = −Σ p·log₂p over character frequencies. it ignores order — <code>abab</code> and <code>aabb</code> score the same. that gap is where the interesting research lives.</p>
+        </div>
+      </div>
+      <h3 class="sub" data-reveal><span class="h-mark">###</span> what i'm working on</h3>
+      <div class="research-list" id="researchList"></div>
+      <h3 class="sub" data-reveal><span class="h-mark">###</span> papers & notes</h3>
+      <div id="papers"></div>
+    </section>
+
+    <!-- 05 PROJECTS -->
+    <section id="projects" data-num="05" data-file="projects/" data-title="projects">
+      <p class="lead" data-reveal>pulled live from <a id="ghLink" href="#" target="_blank" rel="noopener">github</a>.</p>
+      <div class="repo-grid" id="repos"><div class="loading mono">fetching repositories<span class="dots"></span></div></div>
+    </section>
+
+    <!-- 06 LEDGER -->
+    <section id="ledger" data-num="06" data-file="ledger/" data-title="the ledger">
+      <div id="ledgerBody"></div>
+    </section>
+
+    <!-- 07 ROADMAP -->
+    <section id="roadmap" data-num="07" data-file="roadmap.md" data-title="roadmap & plan">
+      <div class="legend mono" data-reveal><span><i class="st done"></i>done</span><span><i class="st doing"></i>in progress</span><span><i class="st blocked"></i>blocked / important</span><span><i class="st todo"></i>planned</span></div>
+      <ol class="timeline" id="timeline"></ol>
+    </section>
+
+    <!-- 08 ACHIEVEMENTS -->
+    <section id="achievements" data-num="08" data-file="achievements/" data-title="achievements">
+      <p class="lead" data-reveal>medals earned — and a few still locked.</p>
+      <div class="medals" id="medals"></div>
+    </section>
+
+    <!-- 09 TOOLBOX -->
+    <section id="toolbox" data-num="09" data-file="toolbox.json" data-title="toolbox">
+      <p class="lead" data-reveal>languages, tools, crafts — the things i reach for.</p>
+      <pre class="code" id="toolboxCode" data-reveal></pre>
+    </section>
+
+    <!-- 10 LIBRARY -->
+    <section id="library" data-num="10" data-file="library.md" data-title="library">
+      <p class="lead" data-reveal>books, films, music and ideas that shaped how i think.</p>
+      <div class="table-scroll" data-reveal>
+        <table class="md-table" id="libTable"><thead><tr><th>kind</th><th>title</th><th>by</th><th>why it stuck</th></tr></thead><tbody></tbody></table>
+      </div>
+    </section>
+
+    <!-- 11 PRINCIPLES -->
+    <section id="principles" data-num="11" data-file="principles.md" data-title="principles">
+      <blockquote class="big-quote" data-reveal>
+        <p>“The fundamental problem of communication is that of reproducing at one point either exactly or approximately a message selected at another point.”</p>
+        <cite class="mono">— Claude Shannon, <em>A Mathematical Theory of Communication</em>, 1948</cite>
+      </blockquote>
+      <ol class="principles" id="principlesList"></ol>
+    </section>
+
+    <!-- 12 MEDIA -->
+    <section id="media" data-num="12" data-file="media/" data-title="media & sound">
+      <div class="grid-2">
+        <div class="panel" data-reveal>
+          <div class="panel-head mono"><span><span class="dot-rec"></span> youtube</span><a id="ytLink" class="dim" target="_blank" rel="noopener">open channel →</a></div>
+          <div class="yt" id="ytBody"></div>
+        </div>
+        <div class="panel" data-reveal>
+          <div class="panel-head mono"><span>♪ soundtrack of this site</span><span class="dim" id="npState">paused</span></div>
+          <div class="np">
+            <button class="np-disc" id="npDisc" aria-label="Play or pause music"><span></span></button>
+            <div>
+              <div class="np-title" id="npTitle"></div>
+              <div class="mono dim" id="npArtist"></div>
+              <div class="np-time mono"><span id="npCur">0:00</span><div class="np-track" id="npTrack"><span id="npFill"></span></div><span id="npDur">0:00</span></div>
+            </div>
+          </div>
+          <canvas class="np-viz" id="npViz" height="90"></canvas>
+          <p class="mono dim small">press <kbd>m</kbd> anywhere to play / pause. it keeps looping while you browse.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 13 DISCORD -->
+    <section id="discord" data-num="13" data-file="discord/" data-title="discord">
+      <div class="grid-2">
+        <div class="panel dc" id="dcCard" data-reveal></div>
+        <div class="panel" id="dcServer" data-reveal></div>
+      </div>
+    </section>
+
+    <!-- 14 LOG -->
+    <section id="log" data-num="14" data-file="log/" data-title="log">
+      <p class="lead mono dim" data-reveal>$ git log --oneline --reverse thoughts</p>
+      <div class="log" id="logList"></div>
+    </section>
+
+    <!-- 15 GUESTBOOK -->
+    <section id="guestbook" data-num="15" data-file="guestbook.md" data-title="guestbook">
+      <p class="lead" data-reveal>leave a note, a question, or just your name. signed with github.</p>
+      <div class="panel" id="giscusBox" data-reveal></div>
+    </section>
+
+    <!-- 16 CONTACT -->
+    <section id="contact" data-num="16" data-file="contact.sh" data-title="get in touch">
+      <div class="contact">
+        <form class="panel cform" id="cform" novalidate data-reveal>
+          <div class="panel-head mono"><span>$ ./contact.sh</span><span class="dim" id="cfMode"></span></div>
+          <div class="field">
+            <label for="cfName">your name</label>
+            <input id="cfName" name="name" type="text" autocomplete="name" maxlength="80" required />
+            <span class="err mono" data-for="cfName"></span>
+          </div>
+          <div class="field">
+            <label for="cfEmail">your email <span class="dim">— so i can reply</span></label>
+            <input id="cfEmail" name="email" type="email" autocomplete="email" maxlength="120" required />
+            <span class="err mono" data-for="cfEmail"></span>
+          </div>
+          <fieldset class="field">
+            <legend>what's it about?</legend>
+            <div class="chips" id="cfTopics">
+              <label><input type="radio" name="topic" value="research" checked /><span>research</span></label>
+              <label><input type="radio" name="topic" value="collaboration" /><span>collaboration</span></label>
+              <label><input type="radio" name="topic" value="opportunity" /><span>opportunity</span></label>
+              <label><input type="radio" name="topic" value="just saying hi" /><span>just saying hi</span></label>
+              <label><input type="radio" name="topic" value="something else" /><span>something else</span></label>
+            </div>
+          </fieldset>
+          <div class="field">
+            <label for="cfMsg">message</label>
+            <textarea id="cfMsg" name="message" rows="6" maxlength="2000" required></textarea>
+            <div class="field-row"><span class="err mono" data-for="cfMsg"></span><span class="mono dim" id="cfCount">0 / 2000</span></div>
+          </div>
+          <input type="checkbox" name="botcheck" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true" />
+          <div class="cf-actions">
+            <button type="submit" class="btn btn-hi" id="cfSend">send message <span class="mono">→</span></button>
+            <span class="mono dim small">or <kbd>ctrl</kbd>+<kbd>enter</kbd></span>
+          </div>
+          <div class="cf-status mono" id="cfStatus" role="status" aria-live="polite"></div>
+        </form>
+
+        <aside class="contact-side" data-reveal>
+          <div class="panel">
+            <div class="panel-head mono"><span>status</span></div>
+            <p class="avail"><i class="st" id="availDot"></i><span id="availText"></span></p>
+            <dl class="kv mono">
+              <dt>local time</dt><dd id="localTime">—</dd>
+              <dt>replies</dt><dd id="respTime">—</dd>
+              <dt>email</dt><dd><span id="emailTxt">—</span> <button class="copy" id="copyEmail" aria-label="Copy email">copy</button></dd>
+              <dt>discord</dt><dd><span id="dcTxt">—</span> <button class="copy" id="copyDc" aria-label="Copy Discord username">copy</button></dd>
+            </dl>
+          </div>
+          <div class="panel">
+            <div class="panel-head mono"><span>elsewhere</span></div>
+            <ul class="socials" id="socials"></ul>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <footer class="foot mono">
+      <div><span class="dim">/*</span> built by hand · hosted on github pages · <span id="lastUpd"></span> <span class="dim">*/</span></div>
+      <div class="dim"><kbd>/</kbd> navigate · <kbd>m</kbd> music · <kbd>j</kbd>/<kbd>k</kbd> sections · <button class="linkish" id="fxToggle">effects: on</button></div>
+    </footer>
+  </main>
+
+  <script src="js/config.js"></script>
+  <script src="js/main.js"></script>
+  <script type="module" src="js/scene.js"></script>
+</body>
+</html>
