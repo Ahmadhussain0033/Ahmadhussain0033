@@ -240,7 +240,7 @@ window.SITE = {
     { label: "discord", url: "https://discord.com" },
     { label: "x / twitter", url: "" },
     { label: "linkedin", url: "" },
-    { label: "instagram", url: "" },
+    { label: "instagram · @ahemod", url: "https://instagram.com/ahemod" },
     { label: "google scholar", url: "" },
     { label: "reddit", url: "" },
     { label: "twitch", url: "" },

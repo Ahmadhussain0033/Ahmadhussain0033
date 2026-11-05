@@ -22,6 +22,7 @@
   <a href="https://discord.com"><img src="https://img.shields.io/badge/discord-nerdatronic-0a0a0b?style=for-the-badge&labelColor=4fe3ff&color=0a0a0b&logo=discord&logoColor=0a0a0b" alt="discord: nerdatronic"></a>
   <a href="https://ahmadhussain0033.github.io/Ledger/#donate"><img src="https://img.shields.io/badge/support-the_ledger-0a0a0b?style=for-the-badge&labelColor=6ee7a0&color=0a0a0b&logo=githubsponsors&logoColor=0a0a0b" alt="support: the ledger"></a>
   <a href="https://github.com/Hexoro"><img src="https://img.shields.io/badge/org-hexoro-0a0a0b?style=for-the-badge&labelColor=d6d6da&color=0a0a0b&logo=github&logoColor=0a0a0b" alt="organization: Hexoro"></a>
+  <a href="https://instagram.com/ahemod"><img src="https://img.shields.io/badge/insta-ahemod-0a0a0b?style=for-the-badge&labelColor=f5f5f6&color=0a0a0b&logo=instagram&logoColor=0a0a0b" alt="instagram: @ahemod"></a>
 </p>
 
 <!-- ─────────────── player card ─────────────── -->
@@ -88,6 +89,7 @@ class Ahmad:
 | | |
 |---|---|
 | **discord** | `nerdatronic` |
+| **instagram** | [@ahemod](https://instagram.com/ahemod) |
 | **site** | [ahmadhussain0033.github.io/Ahmadhussain0033](https://ahmadhussain0033.github.io/Ahmadhussain0033/#contact) |
 | **guestbook** | [sign the wall](https://ahmadhussain0033.github.io/Ahmadhussain0033/#guestbook) |
 | **hexoro** | [the Hexoro page](https://ahmadhussain0033.github.io/Ahmadhussain0033/hexoro/) |
