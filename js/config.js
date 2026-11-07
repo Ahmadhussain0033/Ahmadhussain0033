@@ -219,7 +219,7 @@ window.SITE = {
     { kind: "book", title: "Darren Shan's books", by: "Darren Shan", note: "" },
     { kind: "book", title: "light novels", by: "", note: "" },
     { kind: "book", title: "books in general", by: "", note: "" },
-    { kind: "horror", title: "horror", by: "", note: "books, films, all of it" },
+    { kind: "horror", title: "horror", by: "", note: "" },
     { kind: "horror", title: "analogue horror", by: "", note: "" },
     { kind: "manga", title: "manga", by: "", note: "" },
     { kind: "anime", title: "Dragon Ball Z", by: "", note: "" },
