@@ -50,7 +50,6 @@ window.SITE = {
     ["my company", "Hexoro (founder)"],
     ["good at", "football, gym, arm wrestling, robotics & hardware, chess"],
     ["fuelled by", "energy drinks & coffee"],
-    ["on repeat", "STRUCT — super slowed + reverb"],
   ],
   // "at a glance" tiles under the bio. age, local time, languages and what you're building
   // are added automatically; these are the extra ones — { k, v, sub }
@@ -112,22 +111,18 @@ window.SITE = {
   //   link     — live demo / paper / video (optional)
   //   repo     — "owner/name" → adds a source link + live ★ count (optional)
   //   featured — true → the big flagship card at the top (optional)
+  //   hexoro   — true → also listed under "hexoro" as something rolled out under the company
   projects: [
     {
       title: "infoverse", kind: "platform",
       blurb: "a platform that judges theoretical and practical compressors and information theory, teaches and verifies it, and builds a collective database that doesn't rely on anyone. the whole process is transparent and everyone gets a fair shot.",
       pillars: ["judges compressors, theoretical & practical", "teaches", "verifies", "a collective database that doesn't rely on anyone", "fully transparent", "everyone gets a fair shot"],
-      tags: ["information theory", "compression", "platform"], status: "doing", year: "2026", link: "", repo: "", featured: true,
+      tags: ["information theory", "compression", "platform"], status: "doing", year: "2026", link: "", repo: "", featured: true, hexoro: true,
     },
     {
-      title: "compression research", kind: "research",
-      blurb: "my own research on compression frameworks and laws, and papers about compression and learning as a whole.",
-      tags: ["research", "compression", "learning"], status: "doing", year: "", link: "", repo: "",
-    },
-    {
-      title: "RX0", kind: "software",
-      blurb: "my own compressor.",
-      tags: ["compression"], status: "doing", year: "", link: "", repo: "",
+      title: "compression research & RX0", kind: "research",
+      blurb: "my own research on compression frameworks and laws, papers about compression and learning as a whole, and RX0, my own compressor.",
+      tags: ["research", "compression", "learning", "compressor"], status: "doing", year: "", link: "", repo: "", hexoro: true,
     },
     {
       title: "Arky", kind: "hardware",
@@ -201,26 +196,36 @@ window.SITE = {
     code: ["Python", "C++", "Verilog", "Lean", "Assembly", "HTML", "CSS", "JS"],
     "editors & os": ["Neovim", "VS Code", "Arch Linux", "Obsidian"],
     create: ["Adobe", "photography", "OBS"],
+    "ship & host": ["Git", "GitHub", "GitHub Actions", "GitHub Pages"],
+    ai: ["Claude", "Claude Code"],
     hardware: ["robotics & hardware"],
-    everyday: ["Spotify"],
+    everyday: ["Spotify", "Discord"],
     spoken: ["English", "Urdu", "Arabic"],
   },
 
   /* ---------- library/ (books, films, anything that shaped you) ---------- */
   library: [
-    // { kind: "book" | "film" | "album" | "paper" | "game" | "anime" | …, title, by, note, featured }
+    // { kind: "book" | "film" | "game" | "anime" | "manga" | "horror" | "collection" | "music" | …, title, by, note, featured }
     { kind: "game", title: "Pokémon", by: "", note: "genuinely huge for me", featured: true },
     { kind: "game", title: "Persona", by: "Atlus", note: "" },
     { kind: "game", title: "Minecraft", by: "", note: "" },
     { kind: "game", title: "chess", by: "", note: "" },
     { kind: "game", title: "PSP games", by: "", note: "" },
+    { kind: "game", title: "retro games", by: "", note: "" },
     { kind: "film", title: "Real Steel", by: "", note: "" },
     { kind: "film", title: "Pacific Rim", by: "", note: "" },
     { kind: "film", title: "Rocky (the series)", by: "", note: "" },
     { kind: "book", title: "How to Train Your Dragon (the books)", by: "Cressida Cowell", note: "" },
+    { kind: "book", title: "Darren Shan's books", by: "Darren Shan", note: "" },
     { kind: "book", title: "light novels", by: "", note: "" },
+    { kind: "book", title: "books in general", by: "", note: "" },
+    { kind: "horror", title: "horror", by: "", note: "books, films, all of it" },
+    { kind: "horror", title: "analogue horror", by: "", note: "" },
+    { kind: "manga", title: "manga", by: "", note: "" },
     { kind: "anime", title: "Dragon Ball Z", by: "", note: "" },
     { kind: "anime", title: "Beyblade", by: "", note: "" },
+    { kind: "collection", title: "card collection", by: "", note: "" },
+    { kind: "collection", title: "coin collection", by: "", note: "" },
     { kind: "music", title: "AMVs & music in general", by: "", note: "the anime and nerdy part of life shaped a lot of me" },
   ],
 
@@ -274,9 +279,19 @@ window.SITE = {
   openTo: ["gigs / freelance work", "long-term remote work", "anyone who wants to help: you're welcome"],
   notOpenTo: [],
   contactFaq: [
-    // { q, a }
-    { q: "can i hire you?", a: "yes. gigs, freelance, or something long-term and remote. email me with what you need." },
-    { q: "i want to help with infoverse or your research", a: "you're welcome. reach out and tell me what you'd like to do." },
+    // { q, a, topic } — topic groups them into tabs. answers support **bold**, *italic*, `code`,
+    // [links](https://…) and [jumps](#section-id) to a section on this page
+    { topic: "working with me", q: "can i hire you?", a: "yes. gigs, freelance, or something long-term and remote. email me with what you need and roughly when you need it." },
+    { topic: "working with me", q: "what's the best way to reach you?", a: "discord (**@nerdatronic**) is usually the fastest. email for anything longer, and the [form below](#contact) lands in my inbox too." },
+    { topic: "working with me", q: "how fast do you reply?", a: "usually within 48h. i'm in karachi (PKT, UTC+5), so if it's the middle of the night here, it might take a little longer." },
+    { topic: "the work", q: "what is infoverse?", a: "a platform that judges theoretical and practical compressors and information theory, teaches and verifies it, and builds a collective database that doesn't rely on anyone. the whole process is transparent and everyone gets a fair shot. more in [the work](#work)." },
+    { topic: "the work", q: "what's hexoro?", a: "my own company, to do the things i want. infoverse, my research, patents and whatever else i roll out will be under hexoro, with me as founder. [more here](#hexoro)." },
+    { topic: "the work", q: "i want to help with infoverse or your research", a: "you're welcome. reach out and tell me what you'd like to do." },
+    { topic: "the work", q: "what is algorithmic information theory, simply?", a: "it asks how much information is in one specific thing, like a file or a string. the answer is the length of the shortest program that produces it (its *Kolmogorov complexity*). something with a pattern has a short description; pure noise doesn't. compression is the practical side of the same idea." },
+    { topic: "support", q: "where does the support money go?", a: "new tools i find, premium subscriptions (like for reading), API access, quality-of-life stuff, and other things that help me while i work. every donation, expense and receipt is public in [the ledger](#ledger)." },
+    { topic: "about me", q: "how did you get into information theory?", a: "through a question i proposed to myself. it spiralled." },
+    { topic: "about me", q: "are you self-taught?", a: "mostly. i'm doing a BSCS at IBA (2nd year, 3rd semester), but most of what i know i taught myself." },
+    { topic: "about me", q: "what does the level on your profile mean?", a: "it's my age. it goes up by one every birthday." },
   ],
   // https://web3forms.com → free key, messages arrive in your inbox.
   // leave blank → the form falls back to opening the visitor's email app.
@@ -291,8 +306,18 @@ window.SITE = {
     { label: "spotify", url: "https://open.spotify.com/user/31dz3lsjwqvgd2a55ofvyt5px5g4" },
   ],
 
-  /* ---------- hexoro — your company (only shown as a fact + a small tag) ---------- */
-  hexoro: { name: "Hexoro", role: "founder" },
+  /* ---------- hexoro — your company (its own section; projects with hexoro: true are listed in it) ---------- */
+  hexoro: {
+    name: "Hexoro",
+    role: "founder",
+    tagline: "my own company, to build the things i want to build.",
+    about: [
+      "infoverse, my research, patents and whatever else i roll out will be under hexoro, with me as founder.",
+    ],
+    team: "right now it's just me. people and friends help out now and then, none of them on record.",
+    // what's on the way but not a project yet — shown as dashed slots after the projects
+    coming: ["patents", "whatever i roll out next"],
+  },
 
   /* ---------- music ---------- */
   music: {

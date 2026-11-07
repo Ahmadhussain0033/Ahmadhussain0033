@@ -15,17 +15,19 @@ All personal content lives in **`js/config.js`**.
 | Want to… | Edit in `config.js` |
 |---|---|
 | about me | `intro`, `about`, `facts`, `glance` (extra "at a glance" tiles; level, local time, languages and what you're building are added automatically), `goodAt`, `askMeAbout`, `journey`, `interests` (the drag-able word sphere under "outside the work"), `photo` (blank = your GitHub avatar) |
-| right now (dashboard) | `now` (`focus: true` = the big card; `"title: detail"` splits into a heading and text), `nowUpdated`. The clock, "on repeat" and "next up" widgets come from `timezone`, `music` and `roadmap` |
+| right now (dashboard) | `now` (`focus: true` = the big card; `"title: detail"` splits into a heading and text), `nowUpdated`. The clock and "next up" widgets come from `timezone` and `roadmap` |
 | your thoughts on information theory (the work + README `~/thoughts.md`, hidden while empty) | `thoughtsTitle`, `thoughts` |
 | ledger / support section | `ledger.site`, `ledger.why`, `ledger.links` (buttons that jump to sections of the ledger site) |
-| the work (projects + research) | `projects` (curated; nothing is pulled automatically). `kind`: `platform` / `research` / `software` / `hardware` drives the filter tabs; `featured: true` makes it the flagship card, with `pillars` listed beside it. `papers` shows under it once you add one |
+| the work (projects + research) | `projects` (curated; nothing is pulled automatically). `kind`: `platform` / `research` / `software` / `hardware` drives the filter tabs; `featured: true` makes it the flagship card, with `pillars` listed beside it; `hexoro: true` also lists it under Hexoro. `papers` shows under it once you add one |
+| hexoro (your company) | `hexoro.name`, `role`, `tagline`, `about`, `team`, `coming` (dashed "on the way" slots). Projects with `hexoro: true` are listed under it |
 | update roadmap / medals | `roadmap` (the phase with `when: "always"` is the mission banner; the others are the acts), `achievements` (an empty `title` shows as a locked medal) |
 | toolbox / library | `toolbox` (`{ category: [items] }`, one card per category), `library` (`featured: true` = the wide card; the tabs come from `kind`) |
 | YouTube | `youtube.videos`: ids or links (or `{ id, title }`). The first is the big player, the rest are the playlist next to it; titles load by themselves and a video only loads when it's clicked. With no videos, `youtube.channelId` (starts with `UC…`) plays your latest uploads |
 | live Discord profile card in contact (status, custom status, activities with timers, Spotify; the media section's "listening" panel also shows your Spotify track live) | `discord.userId` (Discord → Settings → Advanced → Developer Mode, then right-click yourself → Copy User ID), then join [discord.gg/lanyard](https://discord.gg/lanyard) once |
 | Discord server card | `discord.serverInvite` alone shows the server name, icon and online/member counts; add `discord.serverId` + Server Settings → Widget → enable to also list who's online |
 | make the contact form deliver email | free key from [web3forms.com](https://web3forms.com) → `web3formsKey` |
-| contact extras | `email`, `bookingUrl`, `reachMe`, `openTo`, `notOpenTo`, `contactFaq`, `socials` |
+| contact extras | `email`, `bookingUrl`, `reachMe`, `openTo`, `notOpenTo`, `socials` |
+| FAQ ("before you ask") | `contactFaq`: `{ q, a, topic }`. `topic` makes the filter tabs; answers can link to a section with `[text](#section-id)`. Visitors can search it, and "ask me directly" drops their search into the form |
 | guestbook | works out of the box: visitors write their note on the site, then sign it on GitHub (an issue from `.github/ISSUE_TEMPLATE/guestbook.yml`). The wall shows open `[guestbook]` issues; **close an issue to remove an entry**. `.github/workflows/guestbook.yml` creates and applies the `guestbook` label. Fill `giscus` instead if you'd rather use giscus discussions |
 | swap the music | drop a file in `assets/audio/` and update `music.src` |
 

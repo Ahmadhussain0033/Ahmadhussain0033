@@ -17,13 +17,14 @@
   const or = (v, label) => (has(v) ? esc(v) : todo(label));
   const safeUrl = (u) => { const v = String(u || "").trim(); return /^(https?:|mailto:)/i.test(v) || /^(assets|docs)\/[\w./-]+$/.test(v) ? v : ""; };
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
-  // tiny inline markdown: **bold**, *em*, `code`, [text](https://…)
+  // tiny inline markdown: **bold**, *em*, `code`, [text](https://…), [text](#section)
   const mdInline = (t) =>
     esc(t)
       .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
       .replace(/\*(.+?)\*/g, "<em>$1</em>")
       .replace(/`(.+?)`/g, "<code>$1</code>")
-      .replace(/\[(.+?)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+      .replace(/\[(.+?)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
+      .replace(/\[(.+?)\]\(#([\w-]+)\)/g, '<a href="#$2" data-nav>$1</a>');
 
   const store = {
     get(k, d) { try { const v = localStorage.getItem("ah:" + k); return v === null ? d : JSON.parse(v); } catch { return d; } },
@@ -870,8 +871,9 @@
     $("#aboutHandle").textContent = has(C.handle) ? "@" + C.handle : "";
     if (has(C.motto)) $("#aboutMotto").textContent = C.motto;
     else $("#aboutMotto").remove();
-    $("#aboutTags").innerHTML = [C.pronouns, C.location, (C.hexoro || {}).name && `${C.hexoro.name}${has(C.hexoro.role) ? " · " + C.hexoro.role : ""}`]
-      .filter(has).map((t) => `<span>${esc(t)}</span>`).join("");
+    const hx = C.hexoro || {};
+    $("#aboutTags").innerHTML = [C.pronouns, C.location].filter(has).map((t) => `<span>${esc(t)}</span>`).join("")
+      + (has(hx.name) ? `<a href="#hexoro" data-nav>${esc(hx.name)}${has(hx.role) ? " · " + esc(hx.role) : ""}</a>` : "");
     const intro = has(C.intro) ? `<p class="about-intro">${mdInline(C.intro)}</p>` : "";
     $("#aboutText").innerHTML = intro + (C.about || []).filter(has).map((p) => `<p>${mdInline(p)}</p>`).join("");
     $("#facts tbody").innerHTML = (C.facts || []).filter((f) => has(f[1])).map(([k, v]) => `<tr><td>${esc(k)}</td><td>${esc(v)}</td></tr>`).join("");
@@ -961,8 +963,6 @@
     }
     // widgets
     if (has(C.timezone)) parts.push(`<div class="now-w panel" data-reveal><div class="nw-k mono">local time</div><div class="nw-clock" id="nwClock">—</div><div class="nw-sub mono dim" id="nwDate"></div></div>`);
-    const M = C.music || {};
-    if (has(M.title)) parts.push(`<div class="now-w panel" data-reveal><div class="nw-k mono">on repeat</div><div class="nw-row"><button class="nw-play" id="nwPlay" aria-label="Play or pause music"><span></span></button><div><div class="nw-t">${esc(M.title)}</div><div class="nw-sub mono dim">${esc(M.artist || "")}</div></div></div></div>`);
     items.filter((n) => n !== focus).forEach((n) => parts.push(card(n)));
     const think = ((C.interests || []).find((g) => g.group === "think") || {}).items || [];
     if (think.filter(has).length) parts.push(`<div class="now-w panel" data-reveal><div class="nw-k mono">on my mind</div><div class="nw-chips">${think.filter(has).map((t) => `<span>${esc(t)}</span>`).join("")}</div></div>`);
@@ -980,12 +980,6 @@
       } catch { tf = null; }
       const t = () => { if (tf) { $("#nwClock").textContent = tf.format(new Date()); $("#nwDate").textContent = df.format(new Date()).toLowerCase(); } };
       t(); setInterval(t, 1000);
-    }
-    const nwPlay = $("#nwPlay");
-    if (nwPlay) {
-      nwPlay.addEventListener("click", toggleMusic);
-      const s = () => nwPlay.classList.toggle("on", isPlaying());
-      audio.addEventListener("play", s); audio.addEventListener("pause", s); s();
     }
   })();
 
@@ -1172,6 +1166,47 @@
         return `<div class="paper" data-reveal><span class="y">${esc(p.year || "")}</span><div>${url ? `<a href="${esc(url)}" target="_blank" rel="noopener">${esc(p.title)}</a>` : esc(p.title)} <span class="dim mono small">${esc(p.venue || "")}</span></div></div>`;
       }).join("");
     } else { $("#papersHead").remove(); $("#papers").remove(); }
+  })();
+
+  // hexoro — the company, and everything rolled out under it (projects with hexoro: true)
+  (() => {
+    const H = C.hexoro || {};
+    const el = $("#hexoroBody");
+    if (!el) return;
+    const name = has(H.name) ? H.name : "Hexoro";
+    const under = (C.projects || []).filter((p) => p && p.hexoro && has(p.title));
+    const coming = (H.coming || []).filter(has);
+    const stLabel = { done: "shipped", doing: "in progress", blocked: "blocked", idea: "idea" };
+    const n2 = (i) => String(i + 1).padStart(2, "0");
+    el.innerHTML = `<article class="hx panel" data-reveal>
+        <div class="hx-id">
+          <div class="hx-mark"><img src="assets/hexoro/logo.svg" alt="${esc(name)} logo" width="132" height="132"></div>
+          <div class="hx-name">${esc(name)}</div>
+          <div class="hx-role mono">${esc(C.name || "")}${has(H.role) ? " · " + esc(H.role) : ""}</div>
+        </div>
+        <div class="hx-body">
+          <div class="hx-label mono"><span>the company</span><span>${under.length} under it${coming.length ? ` · ${coming.length} on the way` : ""}</span></div>
+          ${has(H.tagline) ? `<h3>${esc(H.tagline)}</h3>` : ""}
+          ${(H.about || []).filter(has).map((x) => `<p>${mdInline(x)}</p>`).join("")}
+          <dl class="hx-kv">
+            ${has(H.role) ? `<dt class="mono">${esc(H.role)}</dt><dd>${esc(C.name || "")}</dd>` : ""}
+            ${has(H.team) ? `<dt class="mono">team</dt><dd>${esc(H.team)}</dd>` : ""}
+          </dl>
+        </div>
+        <div class="hx-cells" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+      </article>
+      ${under.length || coming.length ? `<h3 class="sub" data-reveal><span class="h-mark">###</span> under ${esc(name.toLowerCase())}</h3>
+      <div class="hx-grid">
+        ${under.map((p, i) => `<a class="hx-item" href="#work" data-nav data-reveal>
+            <span class="hx-hex mono">${n2(i)}</span>
+            <span class="hx-txt"><span class="hx-k mono"><span>${esc(p.kind || "project")}</span><span><i class="st ${stc(p.status)}"></i>${esc(stLabel[p.status] || "idea")}</span></span>
+            <b>${esc(p.title)}</b>${has(p.blurb) ? `<span class="hx-p">${esc(p.blurb)}</span>` : ""}</span>
+          </a>`).join("")}
+        ${coming.map((c) => `<div class="hx-item soon" data-reveal>
+            <span class="hx-hex mono">+</span>
+            <span class="hx-txt"><span class="hx-k mono"><span>on the way</span></span><b>${esc(c)}</b></span>
+          </div>`).join("")}
+      </div>` : ""}`;
   })();
 
   // embedded pages are mounted only while near the viewport and taken out when far away:
@@ -1794,11 +1829,49 @@
     const no = (C.notOpenTo || []).filter((t) => has(t) || C.showTodos !== false).map((t) => `<li class="no">${or(t, "something you're not open to (optional)")}</li>`);
     $("#openTo").innerHTML = yes.concat(no).join("");
 
-    // faq
-    const faq = (C.contactFaq || []).filter((x) => has(x.q) || C.showTodos !== false);
-    $("#contactFaq").innerHTML = faq.length
-      ? faq.map((x) => `<details class="faq-item" data-reveal><summary>${or(x.q, "a question people ask you")}</summary><p>${has(x.a) ? mdInline(x.a) : todo("the answer")}</p></details>`).join("")
-      : "";
+    // faq — grouped by topic, searchable; nothing matching → ask it in the form
+    (() => {
+      const faq = (C.contactFaq || []).filter((x) => x && has(x.q));
+      const wrap = $("#faqWrap");
+      if (!faq.length) { wrap.previousElementSibling.remove(); wrap.remove(); return; }
+      const list = $("#contactFaq");
+      list.innerHTML = faq
+        .map((x, i) => `<details class="faq-item" data-topic="${esc(x.topic || "")}" data-reveal>
+            <summary><span class="fq-n mono">${String(i + 1).padStart(2, "0")}</span><span class="fq-q">${esc(x.q)}</span><span class="fq-t mono">${esc(x.topic || "")}</span><span class="fq-i" aria-hidden="true"></span></summary>
+            <div class="fq-a"><p>${has(x.a) ? mdInline(x.a) : todo("the answer")}</p></div>
+          </details>`)
+        .join("");
+      const items = $$(".faq-item", list);
+      const q = $("#faqQ"), none = $("#faqNone");
+      let topic = "all";
+      const apply = () => {
+        const s = q.value.trim().toLowerCase();
+        let shown = 0;
+        items.forEach((d, i) => {
+          const ok = (topic === "all" || d.dataset.topic === topic) && (!s || (faq[i].q + " " + faq[i].a).toLowerCase().includes(s));
+          d.hidden = !ok;
+          if (ok) shown++;
+        });
+        none.hidden = shown > 0;
+        $("#faqNoneQ").textContent = s ? `“${q.value.trim()}”` : "that";
+        $("#faqCount").textContent = `${shown} of ${faq.length}`;
+      };
+      tabsFilter($("#faqTabs"), faq, (x) => x.topic || "", (k) => k, (k) => { topic = k; apply(); });
+      q.addEventListener("input", apply);
+      apply();
+      $("#faqAll").addEventListener("click", () => {
+        const open = !items.some((d) => d.open && !d.hidden);
+        items.forEach((d) => { if (!d.hidden) d.open = open; });
+        $("#faqAll").textContent = open ? "collapse all" : "expand all";
+      });
+      // didn't find it → the form, with the question already written
+      $("#faqAsk").addEventListener("click", () => {
+        const m = $("#cfMsg");
+        if (m && !m.value.trim()) { m.value = q.value.trim() ? `hey! quick question: ${q.value.trim()}` : "hey! quick question: "; m.dispatchEvent(new Event("input")); }
+        go("contact");
+        setTimeout(() => m && m.focus({ preventScroll: true }), 700);
+      });
+    })();
 
     // socials
     $("#socials").innerHTML = (C.socials || [])

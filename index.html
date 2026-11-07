@@ -191,7 +191,13 @@
       <div id="papers"></div>
     </section>
 
-    <!-- 04 LEDGER -->
+    <!-- 04 HEXORO -->
+    <section id="hexoro" data-file="hexoro/" data-title="hexoro · my company">
+      <p class="lead" data-reveal>the company everything i roll out goes under.</p>
+      <div id="hexoroBody"></div>
+    </section>
+
+    <!-- 05 LEDGER -->
     <section id="ledger" data-file="ledger/" data-title="the ledger · support">
       <div id="ledgerBody"></div>
     </section>
@@ -222,7 +228,7 @@
 
     <!-- 08 LIBRARY -->
     <section id="library" data-file="library.md" data-title="library">
-      <p class="lead" data-reveal>games, films, books, anime and music that shaped a lot of me.</p>
+      <p class="lead" data-reveal>games, films, books, manga, anime, horror, music, and the stuff i collect: the things that shaped a lot of me.</p>
       <div class="tabs mono" id="libTabs" role="tablist" aria-label="Filter the library" data-reveal></div>
       <div class="shelf" id="shelf"></div>
     </section>
@@ -327,7 +333,16 @@
         </div>
       </div>
       <h3 class="sub" data-reveal><span class="h-mark">###</span> before you ask</h3>
-      <div class="faq" id="contactFaq"></div>
+      <div class="faq-wrap" id="faqWrap">
+        <div class="faq-bar" data-reveal>
+          <label class="faq-search"><span class="mono" aria-hidden="true">?</span><input id="faqQ" type="search" placeholder="search the questions…" aria-label="Search the questions" autocomplete="off" /></label>
+          <div class="tabs mono" id="faqTabs" role="tablist" aria-label="Question topics"></div>
+          <div class="faq-meta mono"><span class="dim" id="faqCount"></span><button class="linkish" id="faqAll" type="button">expand all</button></div>
+        </div>
+        <div class="faq" id="contactFaq"></div>
+        <div class="faq-none panel" id="faqNone" hidden><span class="mono dim">no answer for <span id="faqNoneQ">that</span> yet.</span></div>
+        <div class="faq-ask" data-reveal><span>didn't find what you were looking for?</span><button class="btn btn-hi" id="faqAsk" type="button">ask me directly →</button></div>
+      </div>
     </section>
 
     <footer class="foot mono">
