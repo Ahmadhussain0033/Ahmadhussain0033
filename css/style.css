@@ -1004,6 +1004,27 @@ a.ask:hover { border-color: var(--accent); color: var(--hi); transform: translat
 .hx-cells i:nth-child(4) { left: 40%; top: -50px; width: 90px; background: rgba(255,255,255,.025); animation-delay: -2s; }
 .hx-cells i:nth-child(5) { left: -40px; bottom: -50px; width: 150px; animation-delay: -6s; }
 @keyframes hxDrift { to { transform: translateY(-14px) rotate(8deg); } }
+.hx-readme { margin-top: 14px; padding: 0; overflow: hidden; }
+.hx-readme .panel-head { padding: 12px 20px; margin: 0; border-bottom: 1px solid var(--line); }
+.hx-md { padding: 22px 24px 26px; }
+.hx-md h4 { margin: 0 0 10px; font: 800 1.5rem var(--display); color: var(--hi); }
+.hx-md h5 { margin: 22px 0 14px; font: 700 1.05rem var(--display); color: var(--hi); }
+.hx-md .h-mark { color: var(--mute); font-family: var(--mono); font-weight: 400; margin-right: 4px; }
+.hx-md p { margin: 0; color: var(--fg); max-width: 72ch; }
+/* the plan as a pipeline: each step hands off to the next */
+.hx-plan { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; counter-reset: hp; }
+.hx-plan li { position: relative; display: grid; gap: 4px; align-content: start; padding: 14px 16px; border: 1px solid var(--line2); border-radius: 12px; background: rgba(10,10,12,.6); }
+.hx-plan li:not(:last-child)::after { content: "→"; position: absolute; left: 100%; top: 50%; margin-left: 6px; transform: translate(-50%, -50%); z-index: 1; font: .9rem var(--mono); color: var(--accent); }
+.hx-plan li:last-child { border-style: dashed; }
+.hp-n { font-size: .66rem; color: var(--accent); }
+.hx-plan b { font: 700 1rem var(--display); color: var(--hi); }
+.hx-plan span:not(.hp-n) { font-size: .86rem; color: var(--dim); line-height: 1.45; }
+@media (max-width: 900px) { .hx-plan { grid-template-columns: 1fr 1fr; } .hx-plan li:nth-child(2n)::after { display: none; } }
+@media (max-width: 560px) {
+  .hx-plan { grid-template-columns: 1fr; gap: 16px; }
+  .hx-plan li:not(:last-child)::after { display: block; content: "↓"; left: 22px; top: auto; bottom: -16px; margin-left: 0; transform: none; }
+  .hx-md { padding: 18px 18px 22px; }
+}
 .hx-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 400px), 1fr)); gap: 12px; }
 .hx-item { display: flex; gap: 16px; align-items: flex-start; padding: 18px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); color: var(--fg); transition: border-color .25s, transform .25s var(--ease); }
 a.hx-item:hover { border-color: rgba(var(--accent-rgb), .55); transform: translateY(-3px); }

@@ -1178,6 +1178,18 @@
     const coming = (H.coming || []).filter(has);
     const stLabel = { done: "shipped", doing: "in progress", blocked: "blocked", idea: "idea" };
     const n2 = (i) => String(i + 1).padStart(2, "0");
+    // a little README: the plan, as a markdown file with the steps drawn as a pipeline
+    const RM = H.readme || {};
+    const plan = (RM.plan || []).filter((s) => s && has(s.title));
+    const readme = has(RM.intro) || plan.length ? `<article class="hx-readme panel" data-reveal>
+        <div class="panel-head mono"><span>${esc(name.toLowerCase())}/README.md</span><span class="dim">${plan.length ? `${plan.length} steps` : ""}</span></div>
+        <div class="hx-md">
+          <h4><span class="h-mark">#</span> ${esc(name.toLowerCase())}</h4>
+          ${has(RM.intro) ? `<p>${mdInline(RM.intro)}</p>` : ""}
+          ${plan.length ? `<h5><span class="h-mark">##</span> the plan</h5>
+          <ol class="hx-plan">${plan.map((s, i) => `<li><span class="hp-n mono">${n2(i)}</span><b>${esc(s.title)}</b>${has(s.text) ? `<span>${esc(s.text)}</span>` : ""}</li>`).join("")}</ol>` : ""}
+        </div>
+      </article>` : "";
     el.innerHTML = `<article class="hx panel" data-reveal>
         <div class="hx-id">
           <div class="hx-word" role="img" aria-label="${esc(name)}"><span aria-hidden="true">${esc(name)}</span><span aria-hidden="true">${esc(name)}</span><b aria-hidden="true">${esc(name)}</b></div>
@@ -1194,6 +1206,7 @@
         </div>
         <div class="hx-cells" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
       </article>
+      ${readme}
       ${under.length || coming.length ? `<h3 class="sub" data-reveal><span class="h-mark">###</span> under ${esc(name.toLowerCase())}</h3>
       <div class="hx-grid">
         ${under.map((p, i) => `<a class="hx-item" href="#work" data-nav data-reveal>

@@ -37,6 +37,7 @@ window.SITE = {
     // each string = one paragraph. supports **bold**, *italic*, `code`, [links](https://…)
     "i'm ahmad, 19, from karachi. i'm a BSCS undergrad at IBA (2nd year, 3rd semester), but most of what i know i taught myself.",
     "i care about **algorithmic information theory**, compression, and learning itself. right now i'm building **infoverse**, a platform that judges theoretical and practical compressors and information theory, teaches and verifies it, and builds a collective database that doesn't rely on anyone. the whole process is transparent and everyone gets a fair shot. alongside it i'm doing my own research on compression frameworks and laws, and freelancing.",
+    "i also run **hexoro**, my own company. the plan is to develop better learning algorithms inspired by information theory, and use them to make robots and simulations with our own energy source, plus whatever comes along the way.",
     "i got into information theory through a question i proposed to myself. it spiralled.",
     "outside of that: football, the gym, arm wrestling, robotics and hardware, chess, and coding. fuelled by energy drinks and coffee. the anime and nerdy side of life shaped a lot of me: pokémon, persona, dbz, beyblade, real steel, pacific rim, and a lot of music and AMVs.",
   ],
@@ -285,7 +286,7 @@ window.SITE = {
     { topic: "working with me", q: "what's the best way to reach you?", a: "discord (**@nerdatronic**) is usually the fastest. email for anything longer, and the [form below](#contact) lands in my inbox too." },
     { topic: "working with me", q: "how fast do you reply?", a: "usually within 48h. i'm in karachi (PKT, UTC+5), so if it's the middle of the night here, it might take a little longer." },
     { topic: "the work", q: "what is infoverse?", a: "a platform that judges theoretical and practical compressors and information theory, teaches and verifies it, and builds a collective database that doesn't rely on anyone. the whole process is transparent and everyone gets a fair shot. more in [the work](#work)." },
-    { topic: "the work", q: "what's hexoro?", a: "my own company, to do the things i want. infoverse, my research, patents and whatever else i roll out will be under hexoro, with me as founder. [more here](#hexoro)." },
+    { topic: "the work", q: "what's hexoro?", a: "my own company, to do the things i want. the plan is to develop better learning algorithms inspired by information theory, and use them to make robots and simulations with our own energy source, plus whatever comes along the way. infoverse, my research, patents and whatever else i roll out will be under hexoro, with me as founder. [more here](#hexoro)." },
     { topic: "the work", q: "i want to help with infoverse or your research", a: "you're welcome. reach out and tell me what you'd like to do." },
     { topic: "the work", q: "what is algorithmic information theory, simply?", a: "it asks how much information is in one specific thing, like a file or a string. the answer is the length of the shortest program that produces it (its *Kolmogorov complexity*). something with a pattern has a short description; pure noise doesn't. compression is the practical side of the same idea." },
     { topic: "support", q: "where does the support money go?", a: "new tools i find, premium subscriptions (like for reading), API access, quality-of-life stuff, and other things that help me while i work. every donation, expense and receipt is public in [the ledger](#ledger)." },
@@ -317,6 +318,16 @@ window.SITE = {
     team: "right now it's just me. people and friends help out now and then, none of them on record.",
     // what's on the way but not a project yet — shown as dashed slots after the projects
     coming: ["patents", "whatever i roll out next"],
+    // the README panel: one line on the plan, then the plan as steps (shown as a pipeline)
+    readme: {
+      intro: "the plan is to develop better learning algorithms inspired by information theory, and use them to make robots and simulations with our own energy source, plus whatever comes along the way.",
+      plan: [
+        { title: "learning algorithms", text: "better ones, inspired by information theory" },
+        { title: "robots & simulations", text: "built on top of those algorithms" },
+        { title: "our own energy source", text: "powering what we build" },
+        { title: "along the way", text: "whatever comes out of it" },
+      ],
+    },
   },
 
   /* ---------- music ---------- */
