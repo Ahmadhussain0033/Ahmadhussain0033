@@ -193,10 +193,12 @@ window.SITE = {
   /* ---------- toolbox.json ---------- */
   // { "category": [items] } — each category is a card; "view as json" shows the raw object
   toolbox: {
-    code: ["Python", "C++", "Verilog", "Lean", "Assembly", "HTML", "CSS", "JS"],
-    "editors & os": ["Neovim", "VS Code", "Arch Linux", "Obsidian"],
+    code: ["Python", "C++", "Verilog", "Assembly", "HTML", "CSS", "JS"],
+    "proofs & papers": ["Lean + Mathlib", "LaTeX"],
+    compression: ["hyperfine", "enwik9"],
+    "editors & os": ["Neovim", "VS Code", "Arch Linux", "NixOS", "Obsidian"],
     create: ["Adobe", "photography", "OBS"],
-    hardware: ["robotics & hardware"],
+    "hardware & cad": ["robotics & hardware", "Altium Designer", "AutoCAD", "SolidWorks"],
     everyday: ["Spotify", "Discord"],
     spoken: ["English", "Urdu", "Arabic"],
   },
