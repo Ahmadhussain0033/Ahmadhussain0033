@@ -903,7 +903,7 @@
     if (flag) { const more = (C.projects || []).filter((p) => p && has(p.title)).length - 1; tiles.push({ k: "building", v: flag.title, sub: more > 0 ? `+ ${more} more in <a href="#work" data-nav>the work →</a>` : "", html: true }); }
     (C.glance || []).filter((g) => has(g.k) && has(g.v)).forEach((g) => tiles.push({ k: g.k, v: g.v, sub: g.sub || "" }));
     $("#glance").innerHTML = tiles
-      .map((t) => `<div class="gl panel" data-reveal><div class="gl-k mono">${esc(t.k)}</div><div class="gl-v"${t.clock ? ' id="glClock"' : ""}>${esc(t.v)}</div>${t.sub ? `<div class="gl-sub mono">${t.html ? t.sub : esc(t.sub)}</div>` : t.clock ? '<div class="gl-sub mono" id="glPhase"></div>' : ""}${t.pct != null ? `<div class="gl-bar"><i style="transform:scaleX(${(t.pct / 100).toFixed(3)})"></i></div>` : ""}</div>`)
+      .map((t) => `<div class="gl-tile panel" data-reveal><div class="gl-k mono">${esc(t.k)}</div><div class="gl-v"${t.clock ? ' id="glClock"' : ""}>${esc(t.v)}</div>${t.sub ? `<div class="gl-sub mono">${t.html ? t.sub : esc(t.sub)}</div>` : t.clock ? '<div class="gl-sub mono" id="glPhase"></div>' : ""}${t.pct != null ? `<div class="gl-bar"><i style="transform:scaleX(${(t.pct / 100).toFixed(3)})"></i></div>` : ""}</div>`)
       .join("");
     if ($("#glClock")) {
       let tf = null;
@@ -1084,8 +1084,8 @@
   };
   const filterCards = (cards, keep) => cards.forEach((c, i) => {
     const show = keep(c);
-    c.classList.toggle("out", !show);
-    if (show) { c.style.setProperty("--i", i % 8); c.classList.remove("pop"); void c.offsetWidth; c.classList.add("pop"); }
+    c.classList.toggle("filtered-out", !show);
+    if (show) { c.style.setProperty("--i", i % 8); c.classList.remove("card-in"); void c.offsetWidth; c.classList.add("card-in"); }
   });
   (() => {
     const list = (C.projects || []).filter((p) => p && has(p.title));
@@ -1181,10 +1181,18 @@
     if (e.isIntersecting && !cur) {
       const f = document.createElement("iframe");
       f.src = box.dataset.frameSrc; f.title = box.dataset.frameTitle || ""; f.referrerPolicy = "no-referrer";
-      box.appendChild(f);
+      box.insertBefore(f, box.firstChild); // stays under the click-to-use cover
     } else if (!e.isIntersecting && cur) box.removeChild(cur);
   }), { rootMargin: "500px 0px" });
-  const lazyFrames = (scope) => $$("[data-frame-src]", scope).forEach((b) => frameIO.observe(b));
+  // a click-to-use cover keeps the mouse wheel scrolling the page instead of the embedded
+  // site; it comes back when the pointer leaves the frame
+  const lazyFrames = (scope) => $$("[data-frame-src]", scope).forEach((b) => {
+    frameIO.observe(b);
+    if (b.querySelector(".frame-shield")) return;
+    b.insertAdjacentHTML("beforeend", `<button class="frame-shield" type="button"><span class="mono">click to use the ledger here</span></button>`);
+    b.querySelector(".frame-shield").addEventListener("click", () => b.classList.add("live"));
+    b.addEventListener("pointerleave", () => b.classList.toggle("live", false));
+  });
 
   // ledger
   (async () => {
@@ -1660,7 +1668,7 @@
           gotData = true; tries = 0;
           clearTimeout(pollT);
           render(d);
-          setLive("live · realtime");
+          setLive("live · real-time");
         }
       };
       ws.onclose = () => {

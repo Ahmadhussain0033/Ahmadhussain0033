@@ -694,6 +694,10 @@ body.fx-off #scaret { display: none; }
 .ledger-live .dot-live { display: inline-block; vertical-align: middle; margin-right: 6px; }
 .ledger-frame { position: relative; height: 560px; border-radius: 10px; overflow: hidden; border: 1px solid var(--line); background: var(--bg); }
 .ledger-frame iframe { width: 100%; height: 100%; border: 0; display: block; }
+.frame-shield { position: absolute; inset: 0; z-index: 1; display: flex; align-items: flex-end; justify-content: center; padding: 0 0 18px; border: 0; background: transparent; cursor: pointer; }
+.frame-shield span { padding: 6px 14px; border-radius: 999px; border: 1px solid var(--line2); background: rgba(10,10,11,.85); color: var(--dim); font-size: .72rem; opacity: 0; transform: translateY(6px); transition: opacity .25s, transform .25s var(--ease); }
+.frame-shield:hover span, .frame-shield:focus-visible span { opacity: 1; transform: none; }
+.ledger-frame.live .frame-shield { display: none; }
 @media (max-width: 760px) { .ledger-frame { height: 460px; } }
 
 /* ============ about (extended) ============ */
@@ -758,27 +762,27 @@ a.ask:hover { border-color: var(--accent); color: var(--hi); transform: translat
 .tabs button:hover { color: var(--hi); border-color: var(--dim); }
 .tabs button[aria-selected="true"] { background: var(--hi); color: var(--bg); border-color: var(--hi); }
 .tabs button[aria-selected="true"] span { color: var(--line2); }
-.out { display: none !important; }
-.pop { animation: pop .5s var(--ease) both; animation-delay: calc(var(--i, 0) * 40ms); }
-@keyframes pop { from { opacity: 0; transform: translateY(14px) scale(.98); } to { opacity: 1; transform: none; } }
+.filtered-out { display: none !important; }
+.card-in { animation: cardIn .5s var(--ease) both; animation-delay: calc(var(--i, 0) * 40ms); }
+@keyframes cardIn { from { opacity: 0; transform: translateY(14px) scale(.98); } to { opacity: 1; transform: none; } }
 
 /* ---------- about: at a glance ---------- */
 .glance { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin: 0 0 40px; }
-.gl { position: relative; padding: 16px 18px; overflow: hidden; }
+.gl-tile { position: relative; padding: 16px 18px; overflow: hidden; }
 .gl-k { font-size: .64rem; letter-spacing: .14em; text-transform: uppercase; color: var(--mute); }
 .gl-v { font: 800 1.55rem/1.15 var(--display); color: var(--hi); margin: 6px 0 4px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .gl-sub { font-size: .7rem; color: var(--dim); line-height: 1.5; }
 .gl-bar { height: 3px; margin-top: 12px; border-radius: 2px; background: var(--line); overflow: hidden; }
 .gl-bar i { display: block; height: 100%; background: var(--accent); transform-origin: 0 50%; }
-.gl:first-child .gl-v { color: var(--accent); }
+.gl-tile:first-child .gl-v { color: var(--accent); }
 .good-at { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
 .skill { display: flex; align-items: center; gap: 14px; padding: 12px 16px; border: 1px solid var(--line); border-radius: 999px; background: var(--panel); transition: border-color .25s, transform .25s var(--ease); }
 .skill b { font: 600 .98rem var(--display); color: var(--hi); }
 .hc { position: relative; flex: none; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-size: .8rem; font-weight: 700; color: var(--hi); background: radial-gradient(circle at 35% 30%, #2a2a30, #111114 70%); border: 3px solid var(--hi); }
 .hc::after { content: ""; position: absolute; inset: -9px; border-radius: 50%; border: 2px solid var(--accent); opacity: 0; transform: scale(1.5); }
 .skill:hover { border-color: var(--dim); transform: translateY(-2px); }
-.skill:hover .hc::after { animation: approach .55s var(--ease) forwards; }
-@keyframes approach { from { opacity: .9; transform: scale(1.6); } to { opacity: 0; transform: scale(.95); } }
+.skill:hover .hc::after { animation: skillApproach .55s var(--ease) forwards; }
+@keyframes skillApproach { from { opacity: .9; transform: scale(1.6); } to { opacity: 0; transform: scale(.95); } }
 .hobbies { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 24px; align-items: center; padding: 10px 24px 10px 10px; }
 .sphere-wrap { position: relative; height: 340px; perspective: 900px; display: grid; place-items: center; touch-action: pan-y; cursor: grab; }
 .sphere-hint { position: absolute; left: 14px; bottom: 10px; font-size: .62rem; letter-spacing: .2em; text-transform: uppercase; color: var(--mute); }
