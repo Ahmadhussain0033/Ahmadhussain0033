@@ -976,11 +976,17 @@ a.ask:hover { border-color: var(--accent); color: var(--hi); transform: translat
 /* =====================================================================
    hexoro section + faq
    ===================================================================== */
-.hx { position: relative; overflow: hidden; display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 36px; align-items: center; padding: 34px; }
+.hx { position: relative; overflow: hidden; display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 36px; align-items: center; padding: 34px; }
 .hx-id { display: grid; justify-items: center; gap: 10px; text-align: center; position: relative; z-index: 1; }
-.hx-mark img { display: block; width: 132px; height: 132px; filter: drop-shadow(8px 8px 0 rgba(var(--accent-rgb), .3)); transition: transform 1s var(--ease); }
-.hx:hover .hx-mark img { transform: rotate(60deg); }
-.hx-name { font: 800 italic 2.2rem/1 var(--display); color: var(--hi); letter-spacing: .01em; text-shadow: 4px 4px 0 rgba(var(--accent-rgb), .35); }
+/* a text wordmark (no logo yet): the name, with two outlined echoes that fan out on hover */
+.hx-word { position: relative; display: grid; font: 800 italic 2.7rem/1 var(--display); letter-spacing: .04em; text-transform: uppercase; padding: 0 0 26px; }
+.hx-word > * { grid-area: 1 / 1; transition: transform .6s var(--ease), opacity .6s; }
+.hx-word span { color: transparent; -webkit-text-stroke: 1px rgba(var(--accent-rgb), .55); }
+.hx-word span:nth-child(1) { transform: translateY(26px); opacity: .35; }
+.hx-word span:nth-child(2) { transform: translateY(13px); opacity: .7; }
+.hx-word b { color: var(--hi); font-weight: 800; text-shadow: 0 0 24px rgba(var(--accent-rgb), .25); }
+.hx:hover .hx-word span:nth-child(1) { transform: translate(-8px, 30px); }
+.hx:hover .hx-word span:nth-child(2) { transform: translate(-4px, 15px); }
 .hx-role { font-size: .72rem; color: var(--dim); }
 .hx-body { position: relative; z-index: 1; }
 .hx-label { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: .64rem; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
@@ -1013,10 +1019,10 @@ a.hx-item:hover .hx-hex { background: var(--accent); }
 .hx-item.soon b { color: var(--dim); }
 @media (max-width: 760px) {
   .hx { grid-template-columns: 1fr; gap: 22px; padding: 26px 20px; }
-  .hx-id { grid-template-columns: auto 1fr; justify-items: start; text-align: left; align-items: center; column-gap: 16px; }
-  .hx-mark { grid-row: span 2; }
-  .hx-mark img { width: 72px; height: 72px; filter: drop-shadow(4px 4px 0 rgba(var(--accent-rgb), .3)); }
-  .hx-name { font-size: 1.7rem; }
+  .hx-id { justify-items: start; text-align: left; }
+  .hx-word { font-size: 2.2rem; padding-bottom: 20px; }
+  .hx-word span:nth-child(1) { transform: translateY(20px); }
+  .hx-word span:nth-child(2) { transform: translateY(10px); }
 }
 
 .faq-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin-bottom: 14px; }

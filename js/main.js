@@ -1180,8 +1180,7 @@
     const n2 = (i) => String(i + 1).padStart(2, "0");
     el.innerHTML = `<article class="hx panel" data-reveal>
         <div class="hx-id">
-          <div class="hx-mark"><img src="assets/hexoro/logo.svg" alt="${esc(name)} logo" width="132" height="132"></div>
-          <div class="hx-name">${esc(name)}</div>
+          <div class="hx-word" role="img" aria-label="${esc(name)}"><span aria-hidden="true">${esc(name)}</span><span aria-hidden="true">${esc(name)}</span><b aria-hidden="true">${esc(name)}</b></div>
           <div class="hx-role mono">${esc(C.name || "")}${has(H.role) ? " · " + esc(H.role) : ""}</div>
         </div>
         <div class="hx-body">
