@@ -14,14 +14,15 @@ All personal content lives in **`js/config.js`**.
 
 | Want to… | Edit in `config.js` |
 |---|---|
-| change bio, facts, now-list, interests | `intro`, `about`, `facts`, `askMeAbout`, `journey`, `photo` (blank = your GitHub avatar), `now`, `interests` |
-| your thoughts on information theory (research section + README `~/thoughts.md`) | `thoughtsTitle`, `thoughts` |
+| about me | `intro`, `about`, `facts`, `glance` (extra "at a glance" tiles; level, local time, languages and what you're building are added automatically), `goodAt`, `askMeAbout`, `journey`, `interests` (the drag-able word sphere under "outside the work"), `photo` (blank = your GitHub avatar) |
+| right now (dashboard) | `now` (`focus: true` = the big card; `"title: detail"` splits into a heading and text), `nowUpdated`. The clock, "on repeat" and "next up" widgets come from `timezone`, `music` and `roadmap` |
+| your thoughts on information theory (the work + README `~/thoughts.md`, hidden while empty) | `thoughtsTitle`, `thoughts` |
 | ledger / support section | `ledger.site`, `ledger.why`, `ledger.links` (buttons that jump to sections of the ledger site) |
-| your project portfolio | `projects` (curated; nothing is pulled automatically. `featured: true` makes a card full-width) |
-| add research / papers | `research`, `papers` |
-| update roadmap / medals | `roadmap`, `achievements` (an empty `title` shows as a locked medal) |
-| feature YouTube | `youtube.channelId` (starts with `UC…`) or `youtube.featured` (a video id) |
-| live Discord profile card (status, custom status, activities with timers, Spotify) | `discord.userId` (Discord → Settings → Advanced → Developer Mode, then right-click yourself → Copy User ID), then join [discord.gg/lanyard](https://discord.gg/lanyard) once |
+| the work (projects + research) | `projects` (curated; nothing is pulled automatically). `kind`: `platform` / `research` / `software` / `hardware` drives the filter tabs; `featured: true` makes it the flagship card, with `pillars` listed beside it. `papers` shows under it once you add one |
+| update roadmap / medals | `roadmap` (the phase with `when: "always"` is the mission banner; the others are the acts), `achievements` (an empty `title` shows as a locked medal) |
+| toolbox / library | `toolbox` (`{ category: [items] }`, one card per category), `library` (`featured: true` = the wide card; the tabs come from `kind`) |
+| YouTube | `youtube.videos`: ids or links (or `{ id, title }`). The first is the big player, the rest are the playlist next to it; titles load by themselves and a video only loads when it's clicked. With no videos, `youtube.channelId` (starts with `UC…`) plays your latest uploads |
+| live Discord profile card in contact (status, custom status, activities with timers, Spotify; the media section's "listening" panel also shows your Spotify track live) | `discord.userId` (Discord → Settings → Advanced → Developer Mode, then right-click yourself → Copy User ID), then join [discord.gg/lanyard](https://discord.gg/lanyard) once |
 | Discord server card | `discord.serverInvite` alone shows the server name, icon and online/member counts; add `discord.serverId` + Server Settings → Widget → enable to also list who's online |
 | make the contact form deliver email | free key from [web3forms.com](https://web3forms.com) → `web3formsKey` |
 | contact extras | `email`, `bookingUrl`, `reachMe`, `openTo`, `notOpenTo`, `contactFaq`, `socials` |

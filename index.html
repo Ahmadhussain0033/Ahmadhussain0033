@@ -145,92 +145,95 @@
         </aside>
         <div class="md about-text" id="aboutText" data-reveal></div>
       </div>
+      <div class="glance" id="glance"></div>
       <div class="grid-2 about-more">
         <div data-reveal>
           <table class="md-table" id="facts"><thead><tr><th>key</th><th>value</th></tr></thead><tbody></tbody></table>
         </div>
         <div class="about-side">
           <div class="panel" data-reveal>
+            <div class="panel-head mono"><span>the story so far</span></div>
+            <ol class="journey" id="journey"></ol>
+          </div>
+          <div class="panel" data-reveal>
             <div class="panel-head mono"><span>ask me about</span><a href="#contact" data-nav>start a conversation →</a></div>
             <div class="ask-chips" id="askMe"></div>
           </div>
-          <div class="panel" data-reveal>
-            <div class="panel-head mono"><span>$ git log --reverse me</span></div>
-            <ol class="journey" id="journey"></ol>
-          </div>
         </div>
+      </div>
+      <h3 class="sub" data-reveal><span class="h-mark">###</span> good at</h3>
+      <div class="good-at" id="goodAt"></div>
+      <h3 class="sub" data-reveal><span class="h-mark">###</span> outside the work</h3>
+      <div class="panel hobbies" data-reveal>
+        <div class="sphere-wrap" title="drag me"><div class="sphere" id="sphere"></div><span class="sphere-hint mono">drag</span></div>
+        <div class="groups" id="groups"></div>
       </div>
     </section>
 
     <!-- 02 NOW -->
     <section id="now" data-file="now.md" data-title="right now">
       <p class="lead" data-reveal>what i'm spending my time on these days <span class="mono dim" id="nowUpdated"></span></p>
-      <ul class="checklist" id="nowList"></ul>
+      <div class="now-grid" id="nowGrid"></div>
     </section>
 
-    <!-- 03 EVERYTHING -->
-    <section id="everything" data-file="everything.md" data-title="a bit of everything">
-      <p class="lead" data-reveal>not one thing. a lot of things. drag the sphere.</p>
-      <div class="grid-2 align-center">
-        <div class="sphere-wrap" data-reveal><div class="sphere" id="sphere"></div></div>
-        <div class="groups" id="groups"></div>
+    <!-- 03 THE WORK -->
+    <section id="work" data-file="work/" data-title="the work · projects & research">
+      <p class="lead" data-reveal>research and builds, one thread through all of it: information, compression, and making things that work.</p>
+      <div class="work-stats mono" id="workStats" data-reveal></div>
+      <div id="flagship"></div>
+      <div class="work-bar" data-reveal>
+        <div class="tabs mono" id="workTabs" role="tablist" aria-label="Filter the work"></div>
       </div>
-    </section>
-
-    <!-- 04 RESEARCH -->
-    <section id="research" data-file="research/" data-title="research">
-      <h3 class="sub first" id="thoughtsHead" data-reveal><span class="h-mark">###</span> <span id="thoughtsTitle">my take on information theory</span></h3>
+      <div class="work-grid" id="workGrid"></div>
+      <h3 class="sub" id="thoughtsHead" data-reveal><span class="h-mark">###</span> <span id="thoughtsTitle">my take on information theory</span></h3>
       <div class="md thoughts" id="thoughts" data-reveal></div>
-      <h3 class="sub" id="researchHead" data-reveal><span class="h-mark">###</span> what i'm working on</h3>
-      <div class="research-list" id="researchList"></div>
       <h3 class="sub" id="papersHead" data-reveal><span class="h-mark">###</span> papers & notes</h3>
       <div id="papers"></div>
     </section>
 
-    <!-- 05 PROJECTS -->
-    <section id="projects" data-file="projects/" data-title="projects">
-      <p class="lead" data-reveal>things i've built, am building, or can't stop thinking about.</p>
-      <div class="repo-grid" id="repos"></div>
-    </section>
-
-    <!-- 06 LEDGER -->
+    <!-- 04 LEDGER -->
     <section id="ledger" data-file="ledger/" data-title="the ledger · support">
       <div id="ledgerBody"></div>
     </section>
 
-    <!-- 07 ROADMAP -->
+    <!-- 05 ROADMAP -->
     <section id="roadmap" data-file="roadmap.md" data-title="roadmap & plan">
-      <div class="legend mono" data-reveal><span><i class="st done"></i>done</span><span><i class="st doing"></i>in progress</span><span><i class="st blocked"></i>blocked / important</span><span><i class="st todo"></i>planned</span></div>
-      <ol class="timeline" id="timeline"></ol>
+      <div class="mission" id="mission" data-reveal></div>
+      <div class="road-meta" id="roadMeta" data-reveal></div>
+      <div class="acts" id="acts"></div>
+      <div class="legend mono" data-reveal><span><i class="st done"></i>done</span><span><i class="st doing"></i>in progress</span><span><i class="st blocked"></i>blocked / important</span><span><i class="st planned"></i>planned</span></div>
     </section>
 
-    <!-- 08 ACHIEVEMENTS -->
+    <!-- 06 ACHIEVEMENTS -->
     <section id="achievements" data-file="achievements/" data-title="achievements">
       <p class="lead" data-reveal>medals earned — and a few still locked.</p>
       <div class="medals" id="medals"></div>
     </section>
 
-    <!-- 09 TOOLBOX -->
+    <!-- 07 TOOLBOX -->
     <section id="toolbox" data-file="toolbox.json" data-title="toolbox">
-      <p class="lead" data-reveal>languages, tools, crafts — the things i reach for.</p>
-      <pre class="code" id="toolboxCode" data-reveal></pre>
-    </section>
-
-    <!-- 10 LIBRARY -->
-    <section id="library" data-file="library.md" data-title="library">
-      <p class="lead" data-reveal>books, films, music and ideas that shaped how i think.</p>
-      <div class="table-scroll" data-reveal>
-        <table class="md-table" id="libTable"><thead><tr><th>kind</th><th>title</th><th>by</th><th>why it stuck</th></tr></thead><tbody></tbody></table>
+      <div class="tb-bar" data-reveal>
+        <p class="lead" id="tbLead">languages, tools, crafts: the things i reach for.</p>
+        <div class="tabs mono" role="tablist" aria-label="Toolbox view"><button role="tab" aria-selected="true" data-tbview="cards">cards</button><button role="tab" aria-selected="false" data-tbview="json">toolbox.json</button></div>
       </div>
+      <div class="tb-grid" id="tbGrid"></div>
+      <pre class="code" id="toolboxCode" hidden></pre>
     </section>
 
-    <!-- 12 MEDIA -->
+    <!-- 08 LIBRARY -->
+    <section id="library" data-file="library.md" data-title="library">
+      <p class="lead" data-reveal>games, films, books, anime and music that shaped a lot of me.</p>
+      <div class="tabs mono" id="libTabs" role="tablist" aria-label="Filter the library" data-reveal></div>
+      <div class="shelf" id="shelf"></div>
+    </section>
+
+    <!-- 09 MEDIA -->
     <section id="media" data-file="media/" data-title="media & sound">
-      <div class="grid-2">
-        <div class="panel" data-reveal>
-          <div class="panel-head mono"><span><span class="dot-rec"></span> youtube</span><a id="ytLink" class="dim" target="_blank" rel="noopener">open channel →</a></div>
-          <div class="yt" id="ytBody"></div>
-        </div>
+      <div class="panel vids" data-reveal>
+        <div class="panel-head mono"><span><span class="dot-rec"></span> youtube <span class="dim" id="ytCount"></span></span><a id="ytLink" class="dim" target="_blank" rel="noopener">open channel →</a></div>
+        <div class="vids-body" id="ytBody"></div>
+      </div>
+      <div class="grid-2 media-row">
         <div class="panel" data-reveal>
           <div class="panel-head mono"><span>♪ soundtrack of this site</span><span class="dim" id="npState">paused</span></div>
           <div class="np">
@@ -244,35 +247,17 @@
           <canvas class="np-viz" id="npViz" height="90"></canvas>
           <p class="mono dim small">press <kbd>m</kbd> anywhere to play / pause. it keeps looping while you browse.</p>
         </div>
+        <div class="panel listen" id="listen" data-reveal></div>
       </div>
     </section>
 
-    <!-- 13 DISCORD -->
-    <section id="discord" data-file="discord/" data-title="discord">
-      <div class="grid-2">
-        <div class="panel dc" id="dcCard" data-reveal></div>
-        <div class="panel" id="dcServer" data-reveal></div>
-      </div>
-    </section>
-
-    <!-- 14 LOG -->
-    <section id="log" data-file="log/" data-title="log">
-      <p class="lead mono dim" data-reveal>$ git log --oneline --reverse thoughts</p>
-      <div class="log" id="logList"></div>
-      <h3 class="sub" data-reveal><span class="h-mark">###</span> live from github</h3>
-      <div class="panel" data-reveal>
-        <div class="panel-head mono"><span>$ gh api users/<span id="ghUser"></span>/events</span><a id="ghUserLink" target="_blank" rel="noopener">profile →</a></div>
-        <ul class="gh-feed" id="ghFeed"><li class="dim mono">reading activity<span class="dots"></span></li></ul>
-      </div>
-    </section>
-
-    <!-- 15 GUESTBOOK -->
+    <!-- 10 GUESTBOOK -->
     <section id="guestbook" data-file="guestbook.md" data-title="guestbook">
       <p class="lead" data-reveal>leave a note, a question, or just your name. it goes up on the wall for everyone who visits.</p>
       <div class="panel" id="giscusBox" data-reveal></div>
     </section>
 
-    <!-- 16 CONTACT -->
+    <!-- 11 CONTACT -->
     <section id="contact" data-file="contact.sh" data-title="get in touch">
       <p class="lead" data-reveal>questions, ideas, collaborations, or just saying hi. pick whatever's easiest for you.</p>
       <div class="quick-contact" id="quickContact"></div>
@@ -314,6 +299,7 @@
         </form>
 
         <aside class="contact-side" data-reveal>
+          <div class="panel dc" id="dcCard"></div>
           <div class="panel">
             <div class="panel-head mono"><span>status</span></div>
             <p class="avail"><i class="st" id="availDot"></i><span id="availText"></span></p>
@@ -321,22 +307,24 @@
               <dt>local time</dt><dd id="localTime">—</dd>
               <dt>replies</dt><dd id="respTime">—</dd>
               <dt>email</dt><dd><span id="emailTxt">—</span> <button class="copy" id="copyEmail" aria-label="Copy email">copy</button></dd>
-              <dt>discord</dt><dd><span id="dcTxt">—</span> <button class="copy" id="copyDc" aria-label="Copy Discord username">copy</button></dd>
             </dl>
           </div>
-          <div class="panel">
-            <div class="panel-head mono"><span>best way to reach me</span></div>
-            <ol class="reach" id="reachMe"></ol>
-          </div>
-          <div class="panel">
-            <div class="panel-head mono"><span>open to</span></div>
-            <ul class="open-to" id="openTo"></ul>
-          </div>
-          <div class="panel">
-            <div class="panel-head mono"><span>elsewhere</span></div>
-            <ul class="socials" id="socials"></ul>
-          </div>
         </aside>
+      </div>
+      <div class="contact-more">
+        <div class="panel" id="dcServer" data-reveal></div>
+        <div class="panel" data-reveal>
+          <div class="panel-head mono"><span>best way to reach me</span></div>
+          <ol class="reach" id="reachMe"></ol>
+        </div>
+        <div class="panel" data-reveal>
+          <div class="panel-head mono"><span>open to</span></div>
+          <ul class="open-to" id="openTo"></ul>
+        </div>
+        <div class="panel" data-reveal>
+          <div class="panel-head mono"><span>elsewhere</span></div>
+          <ul class="socials" id="socials"></ul>
+        </div>
       </div>
       <h3 class="sub" data-reveal><span class="h-mark">###</span> before you ask</h3>
       <div class="faq" id="contactFaq"></div>

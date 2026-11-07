@@ -858,6 +858,7 @@
      RENDERERS
      ================================================================= */
   const box = (st) => ({ done: "[x]", doing: "[~]", blocked: "[!]" }[st] || "[ ]");
+  const stc = (st) => (["done", "doing", "blocked"].includes(st) ? st : "planned"); // never "todo": that's the placeholder style
 
   // about
   (() => {
@@ -870,14 +871,61 @@
     if (has(C.motto)) $("#aboutMotto").textContent = C.motto;
     else $("#aboutMotto").remove();
     $("#aboutTags").innerHTML = [C.pronouns, C.location, (C.hexoro || {}).name && `${C.hexoro.name}${has(C.hexoro.role) ? " · " + C.hexoro.role : ""}`]
-      .filter(has).map((t) => `<span>${esc(t)}</span>`).join("") || todo("pronouns / location");
-    const paras = (C.about || []).filter(has);
-    const intro = has(C.intro) ? `<p class="about-intro">${mdInline(C.intro)}</p>` : C.showTodos !== false ? `<p class="about-intro">${todo("intro — one bold line about you")}</p>` : "";
-    const todoParas = (C.about || []).length ? (C.about || []).map((p, i) => (has(p) ? `<p>${mdInline(p)}</p>` : C.showTodos !== false ? `<p>${todo(["who you are", "what you do / study", "how you got here", "outside of all that"][i] || "another paragraph")}</p>` : "")).join("") : "";
-    $("#aboutText").innerHTML = intro + (paras.length || C.showTodos !== false ? todoParas : `<p>${todo("about — write a few paragraphs in config.js → about")}</p>`);
-    $("#facts tbody").innerHTML = (C.facts || []).map(([k, v]) => `<tr><td>${esc(k)}</td><td>${or(v)}</td></tr>`).join("");
-    const ask = (C.askMeAbout || []);
-    $("#askMe").innerHTML = ask.map((t) => (has(t) ? `<a class="ask" href="#contact" data-nav data-ask="${esc(t)}">${esc(t)}</a>` : C.showTodos !== false ? `<span class="ask ask-todo">${todo("topic")}</span>` : "")).join("") || todo("askMeAbout");
+      .filter(has).map((t) => `<span>${esc(t)}</span>`).join("");
+    const intro = has(C.intro) ? `<p class="about-intro">${mdInline(C.intro)}</p>` : "";
+    $("#aboutText").innerHTML = intro + (C.about || []).filter(has).map((p) => `<p>${mdInline(p)}</p>`).join("");
+    $("#facts tbody").innerHTML = (C.facts || []).filter((f) => has(f[1])).map(([k, v]) => `<tr><td>${esc(k)}</td><td>${esc(v)}</td></tr>`).join("");
+
+    // at a glance: level (= age, ticks over on the birthday), local time, languages, what's being built
+    const tiles = [];
+    const A = C.age || {};
+    if (Number(A.value) > 0) {
+      let lvl = Number(A.value), sub = "", pct = null;
+      const bd = /^(\d{2})-(\d{2})$/.exec(A.birthday || "");
+      if (bd) {
+        const mm = +bd[1] - 1, dd = +bd[2];
+        const today = new Date(); today.setHours(0, 0, 0, 0);
+        const asOf = new Date((A.asOf || "") + "T00:00:00");
+        if (!isNaN(asOf)) for (let y = asOf.getFullYear(); y <= today.getFullYear(); y++) { const b = new Date(y, mm, dd); if (b > asOf && b <= today) lvl++; }
+        let next = new Date(today.getFullYear(), mm, dd);
+        if (next <= today) next = new Date(today.getFullYear() + 1, mm, dd);
+        const prev = new Date(next.getFullYear() - 1, mm, dd);
+        const days = Math.round((next - today) / 864e5);
+        pct = ((today - prev) / (next - prev)) * 100;
+        sub = +today === +prev ? "levelled up today" : `lv.${lvl + 1} in ${days} day${days === 1 ? "" : "s"}`;
+      }
+      tiles.push({ k: "level · = age", v: `lv.${lvl}`, sub, pct });
+    }
+    if (has(C.timezone)) tiles.push({ k: "local time" + (has(C.location) ? " · " + C.location.split(",")[0].toLowerCase() : ""), v: "—", sub: "", clock: true });
+    const spoken = ((C.toolbox || {}).spoken || []).filter(has);
+    if (spoken.length) tiles.push({ k: "speaks", v: `${spoken.length} language${spoken.length > 1 ? "s" : ""}`, sub: spoken.join(" · ") });
+    const flag = (C.projects || []).find((p) => p && p.featured && has(p.title));
+    if (flag) { const more = (C.projects || []).filter((p) => p && has(p.title)).length - 1; tiles.push({ k: "building", v: flag.title, sub: more > 0 ? `+ ${more} more in <a href="#work" data-nav>the work →</a>` : "", html: true }); }
+    (C.glance || []).filter((g) => has(g.k) && has(g.v)).forEach((g) => tiles.push({ k: g.k, v: g.v, sub: g.sub || "" }));
+    $("#glance").innerHTML = tiles
+      .map((t) => `<div class="gl panel" data-reveal><div class="gl-k mono">${esc(t.k)}</div><div class="gl-v"${t.clock ? ' id="glClock"' : ""}>${esc(t.v)}</div>${t.sub ? `<div class="gl-sub mono">${t.html ? t.sub : esc(t.sub)}</div>` : t.clock ? '<div class="gl-sub mono" id="glPhase"></div>' : ""}${t.pct != null ? `<div class="gl-bar"><i style="transform:scaleX(${(t.pct / 100).toFixed(3)})"></i></div>` : ""}</div>`)
+      .join("");
+    if ($("#glClock")) {
+      let tf = null;
+      try { tf = new Intl.DateTimeFormat([], { timeZone: C.timezone, hour: "2-digit", minute: "2-digit", hour12: false }); } catch { tf = null; }
+      const hf = tf && new Intl.DateTimeFormat("en-GB", { timeZone: C.timezone, hour: "numeric", hour12: false });
+      const t = () => {
+        if (!tf) return;
+        $("#glClock").textContent = tf.format(new Date());
+        const h = +hf.format(new Date()) % 24;
+        $("#glPhase").textContent = h < 5 ? "late night there · probably still up" : h < 8 ? "early morning there" : h < 12 ? "morning there" : h < 17 ? "afternoon there" : h < 21 ? "evening there" : "night there";
+      };
+      t(); setInterval(t, 15000);
+    }
+
+    // good at: osu-style hit circles, numbered in order
+    const good = (C.goodAt || []).filter(has);
+    if (good.length) $("#goodAt").innerHTML = good.map((g, i) => `<div class="skill" data-reveal><span class="hc mono">${i + 1}</span><b>${esc(g)}</b></div>`).join("");
+    else { $("#goodAt").previousElementSibling.remove(); $("#goodAt").remove(); }
+
+    const ask = (C.askMeAbout || []).filter(has);
+    $("#askMe").innerHTML = ask.map((t) => `<a class="ask" href="#contact" data-nav data-ask="${esc(t)}">${esc(t)}</a>`).join("");
+    if (!ask.length) $("#askMe").parentElement.remove();
     // clicking a topic jumps to the form with it pre-written
     document.addEventListener("click", (e) => {
       const a = e.target.closest("[data-ask]");
@@ -885,20 +933,63 @@
       const m = $("#cfMsg");
       if (m && !m.value.trim()) { m.value = `hey! i wanted to ask you about ${a.dataset.ask}: `; m.dispatchEvent(new Event("input")); }
     });
-    const j = C.journey || [];
-    $("#journey").innerHTML = j.map((x) => `<li data-reveal><span class="mono">${or(x.when, "when")}</span><span>${or(x.text)}</span></li>`).join("") || `<li>${todo("journey")}</li>`;
+    const j = (C.journey || []).filter((x) => has(x.text));
+    $("#journey").innerHTML = j.map((x) => `<li data-reveal><span class="mono">${esc(x.when || "")}</span><span>${esc(x.text)}</span></li>`).join("");
+    if (!j.length) $("#journey").parentElement.remove();
   })();
 
-  // now
+  // now — a small dashboard: the main focus, everything else in motion, and live widgets
   (() => {
     if (has(C.nowUpdated)) $("#nowUpdated").textContent = "· updated " + C.nowUpdated;
-    const items = C.now || [];
-    $("#nowList").innerHTML = items.length
-      ? items.map((it) => `<li data-reveal><span class="box ${esc(it.status)}">${box(it.status)}</span><span>${or(it.text)}</span></li>`).join("")
-      : `<li>${todo("nothing listed yet")}</li>`;
+    const items = (C.now || []).filter((n) => n && has(n.text));
+    const split = (t) => { const i = t.indexOf(":"); return i > 0 && i < 48 ? [t.slice(0, i).trim(), t.slice(i + 1).trim()] : [t.trim(), ""]; };
+    const stLabel = { done: "done", doing: "in progress", blocked: "blocked" };
+    const focus = items.find((n) => n.focus) || items[0];
+    const card = (n) => {
+      const [h, d] = split(n.text), st = esc(n.status || "");
+      return `<article class="now-card" data-reveal><div class="now-st mono"><span class="box ${stc(n.status)}">${box(n.status)}</span>${esc(stLabel[n.status] || "")}</div><h4>${esc(h)}</h4>${d ? `<p>${esc(d)}</p>` : ""}</article>`;
+    };
+    const parts = [];
+    if (focus) {
+      const [h, d] = split(focus.text);
+      parts.push(`<article class="now-focus panel" data-reveal>
+        <div class="nf-label mono"><span class="dot-live"></span> main focus</div>
+        <h3>${esc(h)}</h3>${d ? `<p>${esc(d)}</p>` : ""}
+        <div class="nf-foot mono"><span class="box ${stc(focus.status)}">${box(focus.status)}</span> ${esc(stLabel[focus.status] || "")}${$("#work") ? ` · <a href="#work" data-nav>see it in the work →</a>` : ""}</div>
+        <div class="nf-rings" aria-hidden="true"><i></i><i></i><i></i></div>
+      </article>`);
+    }
+    // widgets
+    if (has(C.timezone)) parts.push(`<div class="now-w panel" data-reveal><div class="nw-k mono">local time</div><div class="nw-clock" id="nwClock">—</div><div class="nw-sub mono dim" id="nwDate"></div></div>`);
+    const M = C.music || {};
+    if (has(M.title)) parts.push(`<div class="now-w panel" data-reveal><div class="nw-k mono">on repeat</div><div class="nw-row"><button class="nw-play" id="nwPlay" aria-label="Play or pause music"><span></span></button><div><div class="nw-t">${esc(M.title)}</div><div class="nw-sub mono dim">${esc(M.artist || "")}</div></div></div></div>`);
+    items.filter((n) => n !== focus).forEach((n) => parts.push(card(n)));
+    const think = ((C.interests || []).find((g) => g.group === "think") || {}).items || [];
+    if (think.filter(has).length) parts.push(`<div class="now-w panel" data-reveal><div class="nw-k mono">on my mind</div><div class="nw-chips">${think.filter(has).map((t) => `<span>${esc(t)}</span>`).join("")}</div></div>`);
+    const nextPh = (C.roadmap || []).find((p) => !/^(now|always)$/i.test(String(p.when || "").trim()) && (p.items || []).some((i) => i.status !== "done" && has(i.text)));
+    if (nextPh) {
+      const nx = nextPh.items.filter((i) => i.status !== "done" && has(i.text)).slice(0, 3);
+      parts.push(`<div class="now-w now-next panel" data-reveal><div class="nw-k mono">next up · ${esc(nextPh.when || "")}<a href="#roadmap" data-nav>roadmap →</a></div><ul>${nx.map((i) => `<li><span class="box ${stc(i.status)}">${box(i.status)}</span>${esc(i.text)}</li>`).join("")}</ul></div>`);
+    }
+    $("#nowGrid").innerHTML = parts.join("");
+    if ($("#nwClock")) {
+      let tf = null, df = null;
+      try {
+        tf = new Intl.DateTimeFormat([], { timeZone: C.timezone, hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false });
+        df = new Intl.DateTimeFormat("en-GB", { timeZone: C.timezone, weekday: "long", day: "numeric", month: "short", timeZoneName: "short" });
+      } catch { tf = null; }
+      const t = () => { if (tf) { $("#nwClock").textContent = tf.format(new Date()); $("#nwDate").textContent = df.format(new Date()).toLowerCase(); } };
+      t(); setInterval(t, 1000);
+    }
+    const nwPlay = $("#nwPlay");
+    if (nwPlay) {
+      nwPlay.addEventListener("click", toggleMusic);
+      const s = () => nwPlay.classList.toggle("on", isPlaying());
+      audio.addEventListener("play", s); audio.addEventListener("pause", s); s();
+    }
   })();
 
-  // everything + 3D sphere
+  // interests → the drag-able word sphere (a widget in about)
   (() => {
     const groups = C.interests || [];
     $("#groups").innerHTML = groups
@@ -921,7 +1012,7 @@
     const lastOp = new Array(n).fill(-1);
     new IntersectionObserver(([e]) => (visible = e.isIntersecting)).observe(wrap);
     // radius from a ResizeObserver: reading clientWidth inside the frame forced a layout every frame
-    new ResizeObserver(() => (R = wrap.clientWidth < 420 ? 125 : 175)).observe(wrap);
+    new ResizeObserver(() => (R = Math.min(150, Math.max(90, wrap.clientWidth * 0.36)))).observe(wrap);
     wrap.addEventListener("pointerdown", (e) => { drag = { x: e.clientX, y: e.clientY }; wrap.setPointerCapture(e.pointerId); });
     wrap.addEventListener("pointermove", (e) => {
       if (!drag) return;
@@ -957,40 +1048,6 @@
     requestAnimationFrame(frame);
   })();
 
-  // research
-  (() => {
-    const list = C.research || [];
-    $("#researchList").innerHTML = list.length
-      ? list
-          .map((r) => {
-            const st = esc(r.status || "idea");
-            const url = safeUrl(r.link);
-            const title = has(r.title) ? (url ? `<a href="${esc(url)}" target="_blank" rel="noopener">${esc(r.title)}</a>` : esc(r.title)) : todo("title");
-            return `<div class="r-item" data-reveal><span class="tag ${st}"><i class="st ${st}"></i>${st}</span><h4>${title}</h4><p>${or(r.blurb, "one-line description")}</p></div>`;
-          })
-          .join("")
-      : `<div class="placeholder">${todo("add research in config.js → research")}</div>`;
-    const papers = C.papers || [];
-    $("#papers").innerHTML = papers.length
-      ? papers
-          .map((p) => {
-            const url = safeUrl(p.link);
-            return `<div class="paper" data-reveal><span class="y">${esc(p.year)}</span><div>${url ? `<a href="${esc(url)}" target="_blank" rel="noopener">${esc(p.title)}</a>` : esc(p.title)} <span class="dim mono small">${esc(p.venue)}</span></div></div>`;
-          })
-          .join("")
-      : "";
-    if (!papers.length) { $("#papersHead").remove(); $("#papers").remove(); } // nothing to show yet → no empty block
-
-  })();
-
-  // your thoughts (research section)
-  (() => {
-    if (has(C.thoughtsTitle)) $("#thoughtsTitle").textContent = C.thoughtsTitle;
-    const paras = (C.thoughts || []).filter(has);
-    if (!paras.length) { $("#thoughtsHead").remove(); $("#thoughts").remove(); $("#researchHead").classList.add("first"); return; }
-    $("#thoughts").innerHTML = paras.map((p) => `<p>${mdInline(p)}</p>`).join("");
-  })();
-
   // GitHub helper (cached per session to stay under the 60 req/h limit)
   async function gh(path) {
     const key = "ah:gh:" + path;
@@ -1010,35 +1067,111 @@
   }
   const shade = (s) => { let h = 0; for (const c of String(s)) h = (h * 31 + c.charCodeAt(0)) >>> 0; const g = 110 + (h % 130); return `rgb(${g},${g},${g})`; };
 
-  // projects — curated in config.js, nothing auto-pulled
+  // the work — projects + research in one place (curated in config.js, nothing auto-pulled)
+  const tabsFilter = (tabsEl, items, keyOf, label, onPick) => {
+    // a row of filter tabs: "all" + every key present, with counts; onPick(key | "all")
+    const keys = [...new Set(items.map(keyOf).filter(has))];
+    if (keys.length < 2) { tabsEl.remove(); return; }
+    const n = (k) => items.filter((x) => keyOf(x) === k).length;
+    tabsEl.innerHTML = [["all", items.length], ...keys.map((k) => [k, n(k)])]
+      .map(([k, c], i) => `<button role="tab" aria-selected="${i === 0}" data-k="${esc(k)}">${esc(label(k))}<span>${c}</span></button>`).join("");
+    tabsEl.addEventListener("click", (e) => {
+      const b = e.target.closest("button[data-k]");
+      if (!b) return;
+      $$("button", tabsEl).forEach((x) => x.setAttribute("aria-selected", String(x === b)));
+      onPick(b.dataset.k);
+    });
+  };
+  const filterCards = (cards, keep) => cards.forEach((c, i) => {
+    const show = keep(c);
+    c.classList.toggle("out", !show);
+    if (show) { c.style.setProperty("--i", i % 8); c.classList.remove("pop"); void c.offsetWidth; c.classList.add("pop"); }
+  });
   (() => {
-    const el = $("#repos");
-    const list = (C.projects || []).filter((p) => p && (C.showTodos !== false || has(p.title)));
-    if (!list.length) { el.innerHTML = `<div class="placeholder">${todo("add your projects in config.js → projects")}</div>`; return; }
+    const list = (C.projects || []).filter((p) => p && has(p.title));
+    const KIND = { platform: ["PLT", "platform", "platforms"], research: ["RES", "research track", "research tracks"], software: ["SW", "software project", "software projects"], hardware: ["HW", "hardware build", "hardware builds"] };
+    const kindOf = (p) => (KIND[p.kind] ? p.kind : "other");
     const stLabel = { done: "shipped", doing: "in progress", blocked: "blocked", idea: "idea" };
-    el.innerHTML = list
+    const stOf = (p) => (["done", "doing", "blocked", "idea"].includes(p.status) ? p.status : "idea");
+    const tagCls = (st) => (st === "done" ? "proven" : st === "doing" ? "conjecture" : st === "blocked" ? "open" : "");
+    const links = (p) => {
+      const link = safeUrl(p.link);
+      const repo = /^[\w.-]+\/[\w.-]+$/.test(String(p.repo || "").trim()) ? String(p.repo).trim() : "";
+      const h = (link ? `<a href="${esc(link)}" target="_blank" rel="noopener">open ↗</a>` : "") + (repo ? `<a href="https://github.com/${esc(repo)}" target="_blank" rel="noopener">source ↗</a><span class="dim" data-stars="${esc(repo)}"></span>` : "");
+      return h ? `<div class="proj-links mono">${h}</div>` : "";
+    };
+    const tags = (p) => { const t = (p.tags || []).filter(has); return t.length ? `<div class="proj-tags mono">${t.map((x) => `<span>${esc(x)}</span>`).join("")}</div>` : ""; };
+
+    // numbers across the top
+    const counts = {};
+    list.forEach((p) => (counts[kindOf(p)] = (counts[kindOf(p)] || 0) + 1));
+    const active = list.filter((p) => stOf(p) === "doing").length;
+    $("#workStats").innerHTML = [
+      `<span><b>${list.length}</b> thing${list.length === 1 ? "" : "s"} on the bench</span>`,
+      ...Object.keys(KIND).filter((k) => counts[k]).map((k) => `<span><b>${counts[k]}</b> ${KIND[k][counts[k] === 1 ? 1 : 2]}</span>`),
+      active ? `<span><i class="st doing"></i><b>${active}</b> in progress</span>` : "",
+    ].join("");
+
+    // the flagship
+    const flag = list.find((p) => p.featured);
+    if (flag) {
+      const st = stOf(flag);
+      const pillars = (flag.pillars || []).filter(has);
+      $("#flagship").innerHTML = `<article class="flagship panel" data-reveal>
+        <div class="fl-main">
+          <div class="fl-label mono"><span>flagship</span><span>${esc((KIND[kindOf(flag)] || [, "project"])[1])}</span>${has(flag.year) ? `<span>${esc(flag.year)}</span>` : ""}</div>
+          <h3>${esc(flag.title)}</h3>
+          <span class="tag ${tagCls(st)}"><i class="st ${st}"></i>${stLabel[st]}</span>
+          <p>${esc(flag.blurb || "")}</p>
+          ${tags(flag)}${links(flag)}
+        </div>
+        ${pillars.length ? `<ol class="fl-pillars">${pillars.map((x, i) => `<li><span class="mono">${String(i + 1).padStart(2, "0")}</span>${esc(x)}</li>`).join("")}</ol>` : ""}
+        <div class="fl-rings" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+      </article>`;
+    }
+
+    // everything else, filterable by kind
+    const rest = list.filter((p) => p !== flag);
+    const grid = $("#workGrid");
+    grid.innerHTML = rest
       .map((p, i) => {
-        const st = ["done", "doing", "blocked", "idea"].includes(p.status) ? p.status : "idea";
-        const link = safeUrl(p.link);
-        const repo = /^[\w.-]+\/[\w.-]+$/.test(String(p.repo || "").trim()) ? String(p.repo).trim() : "";
-        const tags = (p.tags || []).filter(has);
-        return `<article class="proj${p.featured ? " featured" : ""}" data-reveal>
-          <div class="proj-top mono"><span class="proj-n">${String(i + 1).padStart(2, "0")}</span><span class="tag ${st === "done" ? "proven" : st === "doing" ? "conjecture" : st === "blocked" ? "open" : ""}"><i class="st ${st}"></i>${stLabel[st]}</span>${has(p.year) ? `<span class="dim">${esc(p.year)}</span>` : ""}</div>
-          <h4>${or(p.title, "project title")}</h4>
-          <p>${or(p.blurb, "what it is, in a sentence or two")}</p>
-          ${tags.length ? `<div class="proj-tags mono">${tags.map((t) => `<span>${esc(t)}</span>`).join("")}</div>` : C.showTodos !== false ? `<div class="proj-tags mono">${todo("tags")}</div>` : ""}
-          <div class="proj-links mono">
-            ${link ? `<a href="${esc(link)}" target="_blank" rel="noopener">open ↗</a>` : ""}
-            ${repo ? `<a href="https://github.com/${esc(repo)}" target="_blank" rel="noopener">source ↗</a><span class="dim" data-stars="${esc(repo)}"></span>` : ""}
-          </div>
+        const st = stOf(p), k = kindOf(p);
+        return `<article class="wk" data-kind="${esc(k)}" data-reveal>
+          <span class="wk-n" aria-hidden="true">${String(i + 2).padStart(2, "0")}</span>
+          <div class="wk-top mono"><span class="wk-kind" title="${esc((KIND[k] || [, k])[1])}">${esc((KIND[k] || ["··"])[0])}</span><span>${esc((KIND[k] || [, k])[1])}</span>${has(p.year) ? `<span class="dim">${esc(p.year)}</span>` : ""}</div>
+          <h4>${esc(p.title)}</h4>
+          <p>${esc(p.blurb || "")}</p>
+          <div class="wk-foot"><span class="tag ${tagCls(st)}"><i class="st ${st}"></i>${stLabel[st]}</span>${tags(p)}</div>
+          ${links(p)}
         </article>`;
       })
       .join("");
-    reveal(el);
+    const cards = $$(".wk", grid);
+    tabsFilter($("#workTabs"), list, kindOf, (k) => k, (k) => {
+      // the flagship is part of the filter too: it dims when its kind isn't picked
+      const fl = $(".flagship");
+      if (fl) fl.classList.toggle("dimmed", k !== "all" && kindOf(flag) !== k);
+      filterCards(cards, (c) => k === "all" || c.dataset.kind === k);
+    });
+    if (!$("#workTabs")) $(".work-bar").remove();
+    reveal($("#work"));
     // optional live star counts for projects that name a repo
-    $$("[data-stars]", el).forEach(async (s) => {
+    $$("[data-stars]", $("#work")).forEach(async (s) => {
       try { const r = await gh(`/repos/${s.dataset.stars}`); s.textContent = `★ ${r.stargazers_count}`; } catch { /* keep quiet */ }
     });
+
+    // your thoughts + papers: only shown once there's something in them
+    if (has(C.thoughtsTitle)) $("#thoughtsTitle").textContent = C.thoughtsTitle;
+    const paras = (C.thoughts || []).filter(has);
+    if (paras.length) $("#thoughts").innerHTML = paras.map((p) => `<p>${mdInline(p)}</p>`).join("");
+    else { $("#thoughtsHead").remove(); $("#thoughts").remove(); }
+    const papers = (C.papers || []).filter((p) => p && has(p.title));
+    if (papers.length) {
+      $("#papers").innerHTML = papers.map((p) => {
+        const url = safeUrl(p.link);
+        return `<div class="paper" data-reveal><span class="y">${esc(p.year || "")}</span><div>${url ? `<a href="${esc(url)}" target="_blank" rel="noopener">${esc(p.title)}</a>` : esc(p.title)} <span class="dim mono small">${esc(p.venue || "")}</span></div></div>`;
+      }).join("");
+    } else { $("#papersHead").remove(); $("#papers").remove(); }
   })();
 
   // embedded pages are mounted only while near the viewport and taken out when far away:
@@ -1113,23 +1246,55 @@
     }
   })();
 
-  // roadmap
+  // roadmap — the mission on top, then the plan as acts with progress
   (() => {
-    const phases = C.roadmap || [];
-    const col = { done: "var(--green)", doing: "var(--yellow)", blocked: "var(--red)" };
-    $("#timeline").innerHTML = phases
-      .map((p) => {
-        const items = p.items || [];
+    const phases = (C.roadmap || []).filter((p) => p && (p.items || []).some((i) => has(i.text)));
+    const always = phases.find((p) => /^always$/i.test(String(p.when || "").trim()));
+    const acts = phases.filter((p) => p !== always);
+    if (always) {
+      const m = always.items.filter((i) => has(i.text));
+      $("#mission").innerHTML = `<div class="ms-label mono"><span>${esc(always.title || "the mission")}</span><span>${esc(always.when)}</span></div>
+        ${m.map((i) => `<p class="ms-text">${esc(i.text)}</p>`).join("")}
+        <div class="ms-scan" aria-hidden="true"></div>`;
+    } else $("#mission").remove();
+
+    // where the year is + totals
+    const now = new Date(), y = now.getFullYear();
+    const y0 = new Date(y, 0, 1), y1 = new Date(y + 1, 0, 1);
+    const pct = ((now - y0) / (y1 - y0)) * 100;
+    const left = Math.ceil((y1 - now) / 864e5);
+    const all = acts.flatMap((p) => p.items.filter((i) => has(i.text)));
+    const c = (st) => all.filter((i) => stc(i.status) === st).length;
+    $("#roadMeta").innerHTML = `
+      <div class="rm-year panel"><div class="rm-k mono"><span>${y}</span><span>${Math.floor(pct)}% through · ${left} day${left === 1 ? "" : "s"} to ${y + 1}</span></div><div class="rm-bar"><i style="transform:scaleX(${(pct / 100).toFixed(4)})"></i></div></div>
+      <div class="rm-counts mono">
+        <span><b>${all.length}</b> goals</span>
+        <span><i class="st doing"></i><b>${c("doing")}</b> in progress</span>
+        <span><i class="st planned"></i><b>${c("planned")}</b> planned</span>
+        <span><i class="st done"></i><b>${c("done")}</b> done</span>
+        ${c("blocked") ? `<span><i class="st blocked"></i><b>${c("blocked")}</b> blocked</span>` : ""}
+      </div>`;
+
+    const ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII"];
+    const R = 26, L = 2 * Math.PI * R;
+    $("#acts").innerHTML = acts
+      .map((p, k) => {
+        const items = p.items.filter((i) => has(i.text));
         const done = items.filter((i) => i.status === "done").length;
-        const agg = items.some((i) => i.status === "blocked") ? "blocked" : items.some((i) => i.status === "doing") ? "doing" : items.length && done === items.length ? "done" : "todo";
-        return `<li class="phase" data-reveal style="--st:${col[agg] || "var(--mute)"}">
-          <span class="node"></span>
-          <div class="phase-head"><h4>${or(p.title, "phase title")}</h4><span class="when">${or(p.when, "when")}</span>
-            <span class="phase-prog" title="${done}/${items.length} done"><i style="width:${items.length ? (done / items.length) * 100 : 0}%"></i></span></div>
-          <ul>${items.map((i) => `<li><span class="box ${esc(i.status)}">${box(i.status)}</span><span>${or(i.text)}</span></li>`).join("")}</ul>
-        </li>`;
+        const doing = items.filter((i) => i.status === "doing").length;
+        const agg = items.some((i) => i.status === "blocked") ? "blocked" : doing ? "doing" : done === items.length ? "done" : "planned";
+        const f = items.length ? done / items.length : 0, g = items.length ? doing / items.length : 0;
+        const arc = (cls, frac, off) => (frac > 0 ? `<circle cx="32" cy="32" r="${R}" class="${cls}" style="stroke-dasharray:${Math.max(0.1, L * frac - 4).toFixed(1)} ${L.toFixed(1)};stroke-dashoffset:${(-L * off).toFixed(1)}"/>` : "");
+        return `<article class="act panel ${agg}" data-reveal>
+          <div class="act-top">
+            <div><div class="act-n mono">act ${ROMAN[k] || k + 1} · ${esc(p.when || "")}</div><h4>${esc(p.title || "")}</h4></div>
+            <svg class="ring" viewBox="0 0 64 64" aria-label="${done} of ${items.length} done, ${doing} in progress"><circle cx="32" cy="32" r="${R}" class="rg-bg"/>${arc("rg-fg", f, 0)}${arc("rg-doing", g, f)}<text x="32" y="36" text-anchor="middle">${done}/${items.length}</text></svg>
+          </div>
+          <ul class="quests">${items.map((i) => `<li class="${stc(i.status)}"><span class="box ${stc(i.status)}">${box(i.status)}</span><span>${esc(i.text)}</span></li>`).join("")}</ul>
+          <div class="act-foot mono dim">${doing ? `${doing} in progress` : done === items.length ? "complete" : "not started yet"}${k < acts.length - 1 ? '<span class="act-arrow">→</span>' : ""}</div>
+        </article>`;
       })
-      .join("") || `<li>${todo("add roadmap phases in config.js")}</li>`;
+      .join("");
   })();
 
   // achievements
@@ -1151,17 +1316,26 @@
       .join("");
   })();
 
-  // toolbox.json
+  // toolbox — one card per category, or the raw object as toolbox.json
   (() => {
     const tb = C.toolbox || {};
-    const keys = Object.keys(tb);
+    const keys = Object.keys(tb).filter((k) => (tb[k] || []).some(has));
+    const total = keys.reduce((n, k) => n + tb[k].filter(has).length, 0);
+    $("#tbLead").insertAdjacentHTML("beforeend", ` <span class="mono dim small">· ${total} things across ${keys.length} categories</span>`);
+    $("#tbGrid").innerHTML = keys
+      .map((k) => {
+        const vals = tb[k].filter(has);
+        return `<div class="tb panel" data-reveal><div class="panel-head mono"><span>${esc(k)}</span><span class="dim">${vals.length}</span></div>
+          <div class="tb-items">${vals.map((v) => `<span class="tool"><i class="mono">${esc(v.replace(/[^\p{L}\p{N}+#]/gu, "").slice(0, 2))}</i>${esc(v)}</span>`).join("")}</div></div>`;
+      })
+      .join("");
+    // toolbox.json view
     const lines = [`<span class="tk-p">{</span>`];
     keys.forEach((k, ki) => {
-      const vals = tb[k] || [];
-      const empty = vals.some((v) => !has(v));
+      const vals = tb[k].filter(has);
       const str = (v) => `<span class="tk-s">"${esc(v)}"</span>`;
       const sep = '<span class="tk-p">, </span>';
-      const end = `<span class="tk-p">]${ki < keys.length - 1 ? "," : ""}</span>${empty && C.showTodos !== false ? `  <span class="tk-c">// todo: fill in</span>` : ""}`;
+      const end = `<span class="tk-p">]${ki < keys.length - 1 ? "," : ""}</span>`;
       const head = `  <span class="tk-k">"${esc(k)}"</span><span class="tk-p">: [</span>`;
       if (vals.length <= 6) { lines.push(head + vals.map(str).join(sep) + end); return; }
       // long lists wrap like a formatter would: one row of up to 5 per line
@@ -1174,33 +1348,110 @@
     });
     lines.push(`<span class="tk-p">}</span>`);
     $("#toolboxCode").innerHTML = lines.map((l) => `<span class="ln">${l}</span>`).join("");
+    $$("[data-tbview]").forEach((b) => b.addEventListener("click", () => {
+      $$("[data-tbview]").forEach((x) => x.setAttribute("aria-selected", String(x === b)));
+      const json = b.dataset.tbview === "json";
+      $("#tbGrid").hidden = json;
+      $("#toolboxCode").hidden = !json;
+    }));
   })();
 
-  // library
+  // library — a shelf, filterable by kind
   (() => {
-    const list = C.library || [];
-    $("#libTable tbody").innerHTML = list.length
-      ? list.map((x) => {
-          // once a row has a title, a blank "by" / "note" is just left empty (not a todo)
-          const opt = (v) => (has(v) ? esc(v) : has(x.title) ? '<span class="dim">—</span>' : todo());
-          return `<tr><td>${or(x.kind)}</td><td>${or(x.title)}</td><td>${opt(x.by)}</td><td>${opt(x.note)}</td></tr>`;
-        }).join("")
-      : `<tr><td colspan="4">${todo("add to config.js → library")}</td></tr>`;
+    const list = (C.library || []).filter((x) => x && has(x.title));
+    const shelf = $("#shelf");
+    shelf.innerHTML = list
+      .map((x, i) => `<article class="bk${x.featured ? " featured" : ""}" data-kind="${esc(x.kind || "")}" data-reveal>
+          <div class="bk-top mono"><span>${esc(x.kind || "")}</span><span class="dim">${String(i + 1).padStart(2, "0")}</span></div>
+          <h4>${esc(x.title)}</h4>
+          ${has(x.by) ? `<div class="bk-by mono">${esc(x.by)}</div>` : ""}
+          ${has(x.note) ? `<p>${esc(x.note)}</p>` : ""}
+        </article>`)
+      .join("");
+    const cards = $$(".bk", shelf);
+    tabsFilter($("#libTabs"), list, (x) => x.kind || "", (k) => k, (k) => filterCards(cards, (c) => k === "all" || c.dataset.kind === k));
   })();
 
-  // media (YouTube)
+  // media — YouTube: one big player + a playlist beside it (videos load only when clicked)
   (() => {
     const Y = C.youtube || {};
     const link = $("#ytLink");
     const url = safeUrl(Y.url);
     if (url) link.href = url; else link.style.display = "none";
     const bodyEl = $("#ytBody");
+    const idOf = (v) => {
+      const s = String((v && typeof v === "object" ? v.id || v.url : v) || "").trim();
+      const m = s.match(/(?:youtu\.be\/|[?&]v=|\/embed\/|\/shorts\/|\/live\/)([\w-]{11})/);
+      return m ? m[1] : /^[\w-]{11}$/.test(s) ? s : "";
+    };
+    const seen = new Set();
+    const vids = (Y.videos || []).concat(Y.featured ? [Y.featured] : [])
+      .map((v) => ({ id: idOf(v), title: (v && typeof v === "object" && v.title) || "" }))
+      .filter((v) => v.id && !seen.has(v.id) && seen.add(v.id));
+    const frame = (src) => `<iframe src="${esc(src)}" title="YouTube video player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
+    const thumb = (id, q = "hqdefault") => `https://i.ytimg.com/vi/${id}/${q}.jpg`;
     const cid = String(Y.channelId || "").trim();
-    const vid = String(Y.featured || "").trim();
-    const frame = (src) => `<iframe src="${esc(src)}" title="YouTube video player" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
-    if (/^[\w-]{6,20}$/.test(vid)) bodyEl.innerHTML = frame(`https://www.youtube-nocookie.com/embed/${vid}`);
-    else if (/^UC[\w-]{20,}$/.test(cid)) bodyEl.innerHTML = frame(`https://www.youtube-nocookie.com/embed/videoseries?list=UU${cid.slice(2)}`);
-    else bodyEl.innerHTML = `<div class="placeholder">▶ channel coming soon<br>${todo("youtube.channelId or youtube.featured in config.js")}</div>`;
+    if (!vids.length) {
+      if (/^UC[\w-]{20,}$/.test(cid)) { bodyEl.innerHTML = `<div class="stage">${frame(`https://www.youtube-nocookie.com/embed/videoseries?list=UU${cid.slice(2)}`)}</div>`; return; }
+      bodyEl.classList.add("empty");
+      bodyEl.innerHTML = `<div class="stage"><div class="placeholder">▶ channel coming soon<br>${todo("youtube.videos in config.js")}</div></div>
+        <ol class="playlist skel" aria-hidden="true">${[1, 2, 3].map((n) => `<li><span class="pl-th"></span><span class="pl-t"><i></i><i></i></span></li>`).join("")}</ol>`;
+      return;
+    }
+    $("#ytCount").textContent = `· ${vids.length} video${vids.length > 1 ? "s" : ""}`;
+    bodyEl.classList.toggle("single", vids.length === 1);
+    bodyEl.innerHTML = `<div class="stage" id="ytStage"></div>${vids.length > 1 ? `<ol class="playlist" id="ytList">${vids.map((v, i) => `<li><button data-i="${i}"><span class="pl-th"><img alt="" loading="lazy" src="${thumb(v.id, "mqdefault")}"><span class="pl-n mono">${String(i + 1).padStart(2, "0")}</span></span><span class="pl-t" data-title="${i}">${esc(v.title || "video " + (i + 1))}</span></button></li>`).join("")}</ol>` : ""}`;
+    const stage = $("#ytStage");
+    let cur = 0;
+    const show = (i, autoplay) => {
+      cur = i;
+      const v = vids[i];
+      stage.innerHTML = autoplay
+        ? frame(`https://www.youtube-nocookie.com/embed/${v.id}?autoplay=1&rel=0`)
+        : `<button class="lite" style="background-image:url('${thumb(v.id)}')" aria-label="Play ${esc(v.title || "video")}"><span class="lite-play"></span><span class="lite-t" data-title="${i}">${esc(v.title || "")}</span></button>`;
+      $$("#ytList button").forEach((b) => b.classList.toggle("on", +b.dataset.i === i));
+    };
+    stage.addEventListener("click", (e) => { if (e.target.closest(".lite")) show(cur, true); });
+    if ($("#ytList")) $("#ytList").addEventListener("click", (e) => { const b = e.target.closest("button[data-i]"); if (b) show(+b.dataset.i, true); });
+    show(0, false);
+    // titles for videos listed by id only (YouTube oEmbed allows cross-origin reads); cached a day
+    vids.forEach(async (v, i) => {
+      if (v.title) return;
+      const key = "ah:yt:" + v.id;
+      let t = "";
+      try { const c = JSON.parse(localStorage.getItem(key) || "null"); if (c && Date.now() - c.t < 864e5) t = c.title; } catch { /* ignore */ }
+      if (!t) {
+        try {
+          const r = await fetch(`https://www.youtube.com/oembed?format=json&url=${encodeURIComponent("https://www.youtube.com/watch?v=" + v.id)}`);
+          if (r.ok) { t = (await r.json()).title || ""; try { localStorage.setItem(key, JSON.stringify({ t: Date.now(), title: t })); } catch { /* ignore */ } }
+        } catch { /* keep the fallback */ }
+      }
+      if (!t) return;
+      v.title = t;
+      $$(`[data-title="${i}"]`).forEach((el) => (el.textContent = t));
+    });
+  })();
+
+  // media — listening: spotify profile + live track from discord presence when playing
+  (() => {
+    const el = $("#listen");
+    const sp = (C.socials || []).find((s) => /spotify/i.test(s.label || "") && safeUrl(s.url));
+    const music = (C.library || []).filter((x) => x && x.kind === "music" && has(x.title));
+    if (!sp && !music.length) { el.parentElement.classList.add("solo"); el.remove(); return; }
+    el.innerHTML = `<div class="panel-head mono"><span>♫ listening</span>${sp ? `<a href="${esc(safeUrl(sp.url))}" target="_blank" rel="noopener me">spotify ↗</a>` : ""}</div>
+      <div class="ls-live" id="lsLive" hidden></div>
+      <div class="ls-idle" id="lsIdle"><div class="dc-label mono">not playing anything right now</div><p class="dim small">when i'm listening on spotify, the track shows up here live.</p></div>
+      ${music.length ? `<div class="dc-label mono">shaped by</div><ul class="ls-list">${music.map((m) => `<li><b>${esc(m.title)}</b>${has(m.note) ? `<span class="dim small">${esc(m.note)}</span>` : ""}</li>`).join("")}</ul>` : ""}
+      ${sp ? `<a class="btn" href="${esc(safeUrl(sp.url))}" target="_blank" rel="noopener me">my spotify profile ↗</a>` : ""}`;
+    window.addEventListener("presence", (e) => {
+      const d = e.detail || {}, s = d.listening_to_spotify && d.spotify;
+      $("#lsIdle").hidden = !!s;
+      const live = $("#lsLive");
+      live.hidden = !s;
+      if (!s) return;
+      live.innerHTML = `<div class="dc-rich"><div class="dc-art">${s.album_art_url ? `<img alt="" src="${esc(s.album_art_url)}" loading="lazy">` : "♪"}</div>
+        <div class="dc-meta"><div class="dc-kind mono"><span class="dot-live"></span> listening now</div><a class="dc-title" href="https://open.spotify.com/track/${esc(s.track_id || "")}" target="_blank" rel="noopener">${esc(s.song)}</a><div class="dim small">by ${esc(s.artist)}</div></div></div>`;
+    });
   })();
 
   // discord — a real profile card: live over Lanyard's websocket (status, custom status,
@@ -1281,8 +1532,7 @@
         server.innerHTML = `${head()}<div class="placeholder">${joinBtn(inv)}</div>`;
         return;
       }
-      // no server yet → just the profile card (set discord.serverInvite / serverId to bring it back)
-      server.parentElement.classList.add("solo");
+      // no server yet → no server card (set discord.serverInvite / serverId to bring it back)
       server.remove();
     }
     loadServer();
@@ -1303,6 +1553,7 @@
 
     function render(d) {
       last = d;
+      window.dispatchEvent(new CustomEvent("presence", { detail: d })); // media → listening reads spotify from here
       const u = d.discord_user || {};
       const st = d.discord_status || "offline";
       $("#dcSt").className = "st " + st;
@@ -1422,54 +1673,6 @@
     connect();
   })();
 
-  // log
-  (() => {
-    const md = (s) =>
-      esc(s)
-        .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-        .replace(/\*(.+?)\*/g, "<em>$1</em>")
-        .replace(/`(.+?)`/g, "<code>$1</code>")
-        .replace(/\[(.+?)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
-    const posts = [...(C.log || [])].sort((a, b) => String(b.date).localeCompare(String(a.date)));
-    $("#logList").innerHTML = posts.length
-      ? posts.map((p) => `<article class="post" data-reveal><div class="date">${esc(p.date)}</div><div><h4>${or(p.title)}</h4><p>${has(p.body) ? md(p.body) : todo()}</p></div></article>`).join("")
-      : `<div class="placeholder">${todo("no posts yet")}</div>`;
-  })();
-
-  // log → live public GitHub activity (no setup; cached 10 min)
-  (async () => {
-    const el = $("#ghFeed");
-    if (!el || !has(C.github)) return;
-    const user = C.github;
-    $("#ghUser").textContent = user;
-    $("#ghUserLink").href = `https://github.com/${encodeURIComponent(user)}`;
-    const repoLink = (r) => `<a href="https://github.com/${esc(r)}" target="_blank" rel="noopener">${esc(r)}</a>`;
-    const line = (e) => {
-      const p = e.payload || {}, r = e.repo && e.repo.name;
-      switch (e.type) {
-        case "PushEvent": { const n = p.size || (p.commits || []).length; const msg = (p.commits || []).slice(-1)[0]; return ["push", `pushed ${n ? n + " commit" + (n > 1 ? "s" : "") + " " : ""}to ${repoLink(r)}${msg ? ` <span class="dim">— ${esc(String(msg.message).split("\n")[0].slice(0, 80))}</span>` : ""}`]; }
-        case "CreateEvent": return ["new", p.ref_type === "repository" ? `created ${repoLink(r)}` : `created ${esc(p.ref_type)} <code>${esc(p.ref || "")}</code> in ${repoLink(r)}`];
-        case "WatchEvent": return ["star", `starred ${repoLink(r)}`];
-        case "ForkEvent": return ["fork", `forked ${repoLink(r)}`];
-        case "PublicEvent": return ["new", `made ${repoLink(r)} public`];
-        case "ReleaseEvent": return ["ship", `released <b>${esc(p.release?.name || p.release?.tag_name || "")}</b> in ${repoLink(r)}`];
-        case "PullRequestEvent": return ["pr", `${esc(p.action)} a pull request in ${repoLink(r)}${p.pull_request?.title ? ` <span class="dim">— ${esc(p.pull_request.title.slice(0, 80))}</span>` : ""}`];
-        case "IssuesEvent": return ["issue", `${esc(p.action)} an issue in ${repoLink(r)}${p.issue?.title ? ` <span class="dim">— ${esc(p.issue.title.slice(0, 80))}</span>` : ""}`];
-        case "IssueCommentEvent": return ["talk", `commented in ${repoLink(r)}`];
-        default: return null;
-      }
-    };
-    try {
-      const evs = await gh(`/users/${encodeURIComponent(user)}/events/public?per_page=40`);
-      const rows = [...evs].sort((a, b) => String(b.created_at).localeCompare(String(a.created_at))).map((e) => [e, line(e)]).filter((x) => x[1]).slice(0, 10);
-      el.innerHTML = rows.length
-        ? rows.map(([e, [k, html]]) => `<li><span class="gf-k mono">${k}</span><span class="gf-t">${html}</span><span class="gf-w mono">${esc(ago(e.created_at))}</span></li>`).join("")
-        : `<li class="dim">nothing public in the last 90 days</li>`;
-    } catch (err) {
-      el.innerHTML = `<li class="dim">couldn't load activity (${esc(err.message)})</li>`;
-    }
-  })();
-
   // guestbook — works with no setup: entries are GitHub issues made from the guestbook issue
   // form (.github/ISSUE_TEMPLATE/guestbook.yml). Visitors write here (with the typing feel),
   // then sign on GitHub. Close an issue to hide an entry. giscus is used instead if configured.
@@ -1554,10 +1757,8 @@
     $("#availText").innerHTML = or(A.text, "availability");
     $("#respTime").innerHTML = or(C.responseTime);
     $("#emailTxt").innerHTML = or(C.email, "email");
-    $("#dcTxt").innerHTML = or(C.discord?.username);
     if (!has(C.email)) $("#copyEmail").remove();
     else $("#copyEmail").addEventListener("click", () => copy(C.email, "email"));
-    $("#copyDc").addEventListener("click", () => copy(C.discord?.username, "discord username"));
 
     // live local time
     const lt = $("#localTime");

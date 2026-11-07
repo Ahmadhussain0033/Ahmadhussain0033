@@ -52,6 +52,13 @@ window.SITE = {
     ["fuelled by", "energy drinks & coffee"],
     ["on repeat", "STRUCT — super slowed + reverb"],
   ],
+  // "at a glance" tiles under the bio. age, local time, languages and what you're building
+  // are added automatically; these are the extra ones — { k, v, sub }
+  glance: [
+    { k: "studying", v: "BSCS @ IBA", sub: "2nd year · 3rd semester · mostly self-taught" },
+    { k: "fuelled by", v: "energy drinks & coffee", sub: "" },
+  ],
+  goodAt: ["football", "gym", "arm wrestling", "robotics & hardware", "chess", "coding"],
   askMeAbout: ["algorithmic information theory", "compression", "learning itself", "competitions", "games"],
   journey: [
     // a short timeline of you — { when, text }, oldest first
@@ -64,14 +71,15 @@ window.SITE = {
   /* ---------- now.md (what you're doing these days) ---------- */
   nowUpdated: "Nov 2026",
   now: [
-    // { text, status: "done" | "doing" | "blocked" }
-    { text: "building infoverse: a transparent platform that judges compressors and information theory, teaches, verifies, and keeps a collective database", status: "doing" },
-    { text: "my own research on compression frameworks and laws", status: "doing" },
+    // { text, status: "done" | "doing" | "blocked", focus } — "title: detail" shows as a heading + text.
+    // focus: true → the big card on the left of the dashboard
+    { text: "building infoverse: a transparent platform that judges compressors and information theory, teaches, verifies, and keeps a collective database", status: "doing", focus: true },
+    { text: "research: my own work on compression frameworks and laws", status: "doing" },
     { text: "freelancing", status: "doing" },
-    { text: "getting information theory and compression out there", status: "doing" },
+    { text: "the mission: getting information theory and compression out there", status: "doing" },
   ],
 
-  /* ---------- everything.md (you're not just one thing) ---------- */
+  /* ---------- interests (the drag-able word sphere widget in about → hobbies) ---------- */
   interests: [
     { group: "think", items: ["information theory", "algorithmic information theory", "compression", "learning itself"] },
     { group: "make", items: ["robotics", "hardware", "code", "photography"] },
@@ -79,7 +87,7 @@ window.SITE = {
     { group: "love", items: ["anime", "light novels", "pokémon", "persona", "competitions"] },
   ],
 
-  /* ---------- research/ → your own thoughts on information theory ---------- */
+  /* ---------- the work → your own thoughts on information theory (hidden while empty) ---------- */
   thoughtsTitle: "my take on information theory",
   thoughts: [
     // each string = one paragraph. supports **bold**, *italic*, `code`, [links](https://…)
@@ -87,49 +95,47 @@ window.SITE = {
     "",
   ],
 
-  /* ---------- research/ ---------- */
-  research: [
-    // { title, blurb, status: "proven" | "open" | "conjecture" | "idea", link }
-    { title: "compression frameworks & laws", blurb: "my own research into frameworks and laws of compression.", status: "open", link: "" },
-    { title: "infoverse", blurb: "judging theoretical and practical compressors, with teaching, verification and a collective database that doesn't rely on anyone.", status: "open", link: "" },
-  ],
+  /* ---------- research/ → papers (shows under the work once you add one) ---------- */
   papers: [
     // { title, venue, year, link }
   ],
 
-  /* ---------- projects/ — YOUR curated portfolio (nothing is auto-pulled) ---------- */
+  /* ---------- the work — projects + research in one place (nothing is auto-pulled) ---------- */
   // Only what you list here shows up, in this order. Copy a block to add more.
   //   title    — project name
+  //   kind     — "platform" | "research" | "software" | "hardware"  (the filter tabs)
   //   blurb    — 1–2 sentences: what it is / why it matters
+  //   pillars  — optional list of what it stands on (shown on the featured card)
   //   tags     — short labels, e.g. ["python", "compression", "research"]
   //   status   — "done" | "doing" | "blocked" | "idea"   (green / yellow / red / grey)
   //   year     — e.g. "2026"
   //   link     — live demo / paper / video (optional)
   //   repo     — "owner/name" → adds a source link + live ★ count (optional)
-  //   featured — true → card spans full width at the top (optional)
+  //   featured — true → the big flagship card at the top (optional)
   projects: [
     {
-      title: "infoverse",
+      title: "infoverse", kind: "platform",
       blurb: "a platform that judges theoretical and practical compressors and information theory, teaches and verifies it, and builds a collective database that doesn't rely on anyone. the whole process is transparent and everyone gets a fair shot.",
+      pillars: ["judges compressors, theoretical & practical", "teaches", "verifies", "a collective database that doesn't rely on anyone", "fully transparent", "everyone gets a fair shot"],
       tags: ["information theory", "compression", "platform"], status: "doing", year: "2026", link: "", repo: "", featured: true,
     },
     {
-      title: "compression research",
-      blurb: "papers and work about compression, and learning as a whole.",
+      title: "compression research", kind: "research",
+      blurb: "my own research on compression frameworks and laws, and papers about compression and learning as a whole.",
       tags: ["research", "compression", "learning"], status: "doing", year: "", link: "", repo: "",
     },
     {
-      title: "RX0",
+      title: "RX0", kind: "software",
       blurb: "my own compressor.",
       tags: ["compression"], status: "doing", year: "", link: "", repo: "",
     },
     {
-      title: "Arky",
+      title: "Arky", kind: "hardware",
       blurb: "the pet hexapod i'm making.",
       tags: ["robotics", "hardware"], status: "doing", year: "", link: "", repo: "",
     },
     {
-      title: "closed energy generator",
+      title: "closed energy generator", kind: "hardware",
       blurb: "my own energy device: trying to perfect a closed Stirling engine.",
       tags: ["hardware", "energy"], status: "doing", year: "", link: "", repo: "",
     },
@@ -190,17 +196,20 @@ window.SITE = {
   ],
 
   /* ---------- toolbox.json ---------- */
+  // { "category": [items] } — each category is a card; "view as json" shows the raw object
   toolbox: {
+    code: ["Python", "C++", "Verilog", "Lean", "Assembly", "HTML", "CSS", "JS"],
+    "editors & os": ["Neovim", "VS Code", "Arch Linux", "Obsidian"],
+    create: ["Adobe", "photography", "OBS"],
+    hardware: ["robotics & hardware"],
+    everyday: ["Spotify"],
     spoken: ["English", "Urdu", "Arabic"],
-    tools: ["Obsidian", "Arch Linux", "Neovim", "VS Code", "Python", "C++", "Verilog", "Lean", "Assembly", "HTML", "CSS", "JS", "Spotify", "OBS"],
-    creative: ["Adobe", "photography"],
-    other: ["robotics & hardware"],
   },
 
   /* ---------- library/ (books, films, anything that shaped you) ---------- */
   library: [
-    // { kind: "book" | "film" | "album" | "paper" | "game" | "anime" | …, title, by, note }
-    { kind: "game", title: "Pokémon", by: "", note: "genuinely huge for me" },
+    // { kind: "book" | "film" | "album" | "paper" | "game" | "anime" | …, title, by, note, featured }
+    { kind: "game", title: "Pokémon", by: "", note: "genuinely huge for me", featured: true },
     { kind: "game", title: "Persona", by: "Atlus", note: "" },
     { kind: "game", title: "Minecraft", by: "", note: "" },
     { kind: "game", title: "chess", by: "", note: "" },
@@ -218,11 +227,13 @@ window.SITE = {
   /* ---------- media/ (YouTube) ---------- */
   youtube: {
     url: "", // e.g. "https://youtube.com/@yourchannel"
-    channelId: "", // starts with "UC..." — enables the live uploads player
-    featured: "", // a video id to feature, e.g. "dQw4w9WgXcQ"
+    // videos to show: ids or links, e.g. ["dQw4w9WgXcQ", "https://youtu.be/…"] (or { id, title }).
+    // the first one is the big player, the rest are the playlist next to it; titles load by themselves
+    videos: [],
+    channelId: "", // starts with "UC..." — with no videos listed, plays your latest uploads
   },
 
-  /* ---------- discord ---------- */
+  /* ---------- discord (live card in contact) ---------- */
   discord: {
     username: "nerdatronic",
     displayName: "", // shown until live data arrives (live data uses your real display name)
@@ -236,12 +247,6 @@ window.SITE = {
     // server ID + Server Settings → Widget → Enable → also shows who's online right now
     serverId: "",
   },
-
-  /* ---------- log/ (short posts) ---------- */
-  log: [
-    // { date: "2026-11-05", title, body (markdown-ish: **bold**, *em*, `code`, [link](url)) }
-    { date: "2026-11-05", title: "hello, world", body: "the site is live. more soon." },
-  ],
 
   /* ---------- guestbook ---------- */
   // works out of the box: notes are GitHub issues from the guestbook form in this repo.
