@@ -18,9 +18,9 @@
 <circle class="ring" cx="300" cy="92" r="46" fill="none" stroke="#4fe3ff" stroke-width="6" stroke-linecap="round" transform="rotate(-90 300 92)"/>
 <text x="300" y="104" text-anchor="middle" class="cn">1</text>
 <text x="300" y="164" text-anchor="middle" class="l" style="fill:#4fe3ff">current streak</text>
-<text x="300" y="182" text-anchor="middle" class="d">Nov 6 – Nov 6</text>
+<text x="300" y="182" text-anchor="middle" class="d">Nov 6 – Nov 7</text>
 <g class="in" style="animation-delay:.15s"><text x="500" y="96" text-anchor="middle" class="n">3</text>
 <text x="500" y="124" text-anchor="middle" class="l">longest streak</text>
 <text x="500" y="146" text-anchor="middle" class="d">Nov 2 – Nov 4</text></g>
-<text x="586" y="190" text-anchor="end" class="d">updated 2026-11-06 19:22 UTC</text>
+<text x="586" y="190" text-anchor="end" class="d">updated 2026-11-07 05:55 UTC</text>
 </svg>
