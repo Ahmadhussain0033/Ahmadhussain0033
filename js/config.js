@@ -196,8 +196,6 @@ window.SITE = {
     code: ["Python", "C++", "Verilog", "Lean", "Assembly", "HTML", "CSS", "JS"],
     "editors & os": ["Neovim", "VS Code", "Arch Linux", "Obsidian"],
     create: ["Adobe", "photography", "OBS"],
-    "ship & host": ["Git", "GitHub", "GitHub Actions", "GitHub Pages"],
-    ai: ["Claude", "Claude Code"],
     hardware: ["robotics & hardware"],
     everyday: ["Spotify", "Discord"],
     spoken: ["English", "Urdu", "Arabic"],
