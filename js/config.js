@@ -38,6 +38,7 @@ window.SITE = {
     "i'm ahmad, 19, from karachi. i'm a BSCS undergrad at IBA (2nd year, 3rd semester), but most of what i know i taught myself.",
     "i care about **algorithmic information theory**, compression, and learning itself. right now i'm building **infoverse**, a platform that judges theoretical and practical compressors and information theory, teaches and verifies it, and builds a collective database that doesn't rely on anyone. the whole process is transparent and everyone gets a fair shot. alongside it i'm doing my own research on compression frameworks and laws, and freelancing.",
     "i also run **hexoro**, my own company. the plan is to develop better learning algorithms inspired by information theory, and use them to make robots and simulations with our own energy source, plus whatever comes along the way.",
+    "the final plan: finish the learning algorithm and our energy source, then roll out swarm bots and virtual metaverses with their own economy, maybe reworking the hardware for both along the way. all of it is part of finding out what learning truly is, and approaching problems in a new light.",
     "i got into information theory through a question i proposed to myself. it spiralled.",
     "outside of that: football, the gym, arm wrestling, robotics and hardware, chess, and coding. fuelled by energy drinks and coffee. the anime and nerdy side of life shaped a lot of me: pokémon, persona, dbz, beyblade, real steel, pacific rim, and a lot of music and AMVs.",
   ],
@@ -314,6 +315,7 @@ window.SITE = {
     tagline: "my own company, to build the things i want to build.",
     about: [
       "infoverse, my research, patents and whatever else i roll out will be under hexoro, with me as founder.",
+      "the end goal is finding out what learning truly is, and approaching problems in a new light.",
     ],
     team: "right now it's just me. people and friends help out now and then, none of them on record.",
     // what's on the way but not a project yet — shown as dashed slots after the projects
@@ -327,6 +329,15 @@ window.SITE = {
         { title: "our own energy source", text: "powering what we build" },
         { title: "along the way", text: "whatever comes out of it" },
       ],
+      // the final plan — a checklist under "## the final plan"; maybe: true marks the not-decided ones
+      finalPlan: [
+        { text: "finish the learning algorithm" },
+        { text: "finish our own energy source" },
+        { text: "roll out swarm bots and virtual metaverses, with their own economy" },
+        { text: "and whatever else comes with it" },
+        { text: "rework the hardware for both", maybe: true },
+      ],
+      why: "all of it is part of finding out what learning truly is, and approaching problems in a new light.",
     },
   },
 

@@ -1181,6 +1181,7 @@
     // a little README: the plan, as a markdown file with the steps drawn as a pipeline
     const RM = H.readme || {};
     const plan = (RM.plan || []).filter((s) => s && has(s.title));
+    const fin = (RM.finalPlan || []).filter((s) => s && has(s.text));
     const readme = has(RM.intro) || plan.length ? `<article class="hx-readme panel" data-reveal>
         <div class="panel-head mono"><span>${esc(name.toLowerCase())}/README.md</span><span class="dim">${plan.length ? `${plan.length} steps` : ""}</span></div>
         <div class="hx-md">
@@ -1188,6 +1189,9 @@
           ${has(RM.intro) ? `<p>${mdInline(RM.intro)}</p>` : ""}
           ${plan.length ? `<h5><span class="h-mark">##</span> the plan</h5>
           <ol class="hx-plan">${plan.map((s, i) => `<li><span class="hp-n mono">${n2(i)}</span><b>${esc(s.title)}</b>${has(s.text) ? `<span>${esc(s.text)}</span>` : ""}</li>`).join("")}</ol>` : ""}
+          ${fin.length ? `<h5><span class="h-mark">##</span> the final plan</h5>
+          <ul class="hx-final">${fin.map((s) => `<li class="${s.maybe ? "maybe" : ""}"><span class="mono">${s.maybe ? "[?]" : "[ ]"}</span><span>${esc(s.text)}${s.maybe ? ' <i class="mono">maybe</i>' : ""}</span></li>`).join("")}</ul>` : ""}
+          ${has(RM.why) ? `<blockquote class="hx-why"><span class="mono">&gt;</span> ${mdInline(RM.why)}</blockquote>` : ""}
         </div>
       </article>` : "";
     el.innerHTML = `<article class="hx panel" data-reveal>

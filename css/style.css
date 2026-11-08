@@ -1019,6 +1019,13 @@ a.ask:hover { border-color: var(--accent); color: var(--hi); transform: translat
 .hp-n { font-size: .66rem; color: var(--accent); }
 .hx-plan b { font: 700 1rem var(--display); color: var(--hi); }
 .hx-plan span:not(.hp-n) { font-size: .86rem; color: var(--dim); line-height: 1.45; }
+.hx-final { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.hx-final li { display: flex; gap: 12px; align-items: baseline; color: var(--fg); }
+.hx-final li > .mono { flex: none; font-size: .8rem; color: var(--accent); }
+.hx-final li.maybe > .mono { color: var(--yellow); }
+.hx-final i { font-style: normal; font-size: .62rem; letter-spacing: .12em; text-transform: uppercase; color: var(--yellow); border: 1px solid rgba(255,209,102,.4); border-radius: 999px; padding: 1px 8px; margin-left: 6px; vertical-align: 2px; }
+.hx-why { margin: 22px 0 0; padding: 14px 18px; border-left: 3px solid var(--accent); border-radius: 0 10px 10px 0; background: rgba(var(--accent-rgb), .06); font: 600 1.05rem/1.5 var(--display); color: var(--hi); }
+.hx-why .mono { color: var(--accent); margin-right: 6px; }
 @media (max-width: 900px) { .hx-plan { grid-template-columns: 1fr 1fr; } .hx-plan li:nth-child(2n)::after { display: none; } }
 @media (max-width: 560px) {
   .hx-plan { grid-template-columns: 1fr; gap: 16px; }
